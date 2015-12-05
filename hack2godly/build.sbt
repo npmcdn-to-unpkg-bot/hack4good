@@ -15,7 +15,9 @@ libraryDependencies ++= Seq(
   "com.twitter" %% "util-collection" % "6.27.0",
   "com.typesafe.slick" %% "slick" % "3.1.0",
   "org.slf4j" % "slf4j-nop" % "1.6.4",
-  "com.h2database" % "h2" % "1.3.166"
+  "joda-time" % "joda-time" % "2.9.1",			
+  "com.h2database" % "h2" % "1.3.166",
+  "org.json4s" %% "json4s-native" % "3.3.0"
 )
 
 
