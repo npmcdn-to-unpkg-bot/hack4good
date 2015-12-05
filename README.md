@@ -18,8 +18,8 @@ PROBLEME DIE IMMER WIEDERKEHREN
   - was machen wir, wenn wir keine guten quellen finden koennen??!?!
   
 HINWEISE
-	-	Chat mit zum Sammeln von Metainformationen (Tags, usw.)
-		-	Metainformation pro "Session"
-		-	zu den Tags werden Videos, Dokumente etc. analysiert und gesucht
-		-	Snapchat-Phänomen: nach vielleicht 8 Tagen geht der Verlauf + Dokumente (Tags) verloren
-			-	motiviert die Leute Dokumente zeitnah durchzuarbeiten
+-	Chat mit zum Sammeln von Metainformationen (Tags, usw.)
+   -   Metainformation pro "Session"
+   -   zu den Tags werden Videos, Dokumente etc. analysiert und gesucht
+   -   Snapchat-Phänomen: nach vielleicht 8 Tagen geht der Verlauf + Dokumente (Tags) verloren
+       -   motiviert die Leute Dokumente zeitnah durchzuarbeiten
