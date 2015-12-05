@@ -207,10 +207,28 @@ var ContentTaggingOverview = React.createClass({
     }
 });
 
+var ChatMessage = React.createClass({
+    render: function () {
+        return (
+        <li class="collection-item avatar">
+            <img src="http://materializecss.com/images/yuna.jpg" alt="" class="circle" />
+            <span class="title">Title</span>
+            <p>First Line Second Line</p>
+            <a href="#!" class="secondary-content"><i class="material-icons">grade</i></a>
+        </li>);
+    }
+});
+
+var ChatRoom = React.createClass({
+    render: function() {
+        return (<ul></ul>);
+    }
+});
+
 var Content = React.createClass({
     getDefaultProps: function() {
         return {
-            active: <ContentTaggingOverview />
+            active: <ChatMessage />
         }
     },
 
