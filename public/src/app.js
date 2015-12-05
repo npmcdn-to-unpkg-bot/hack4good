@@ -211,7 +211,11 @@ var ChatRoom = React.createClass({
     },
 
     getInitialState: function () {
-        return getSession(this.props.chatId)
+        var messagesData = getSession(this.props.chatId);
+
+        messagesData.messageValue = "";
+
+        return messagesData;
     },
 
     getChatMessages: function () {
@@ -224,8 +228,37 @@ var ChatRoom = React.createClass({
         return chatroomData;
     },
 
+    createMessage: function (messageString) {
+        return {
+            owner: 1,
+            data: messageString,
+            date: 15
+        }
+    },
+
+    sendMessage: function (event) {
+        var value = $(ReactDOM.findDOMNode(this.refs.messageValue));
+        if (value.val().length > 0) {
+            var msg = this.createMessage(value.val());
+            var allMessages = this.state.messages;
+            allMessages.push(msg);
+            this.setState({messages: allMessages});
+            value.val("");
+            console.log("TOOOOOOODOOOOOOOOOO Sending message !!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        }
+    },
+
     render: function() {
-        return (<ul className="collection">{this.getChatMessages()}</ul>);
+        return (<div>
+            <ul className="collection">{this.getChatMessages()}</ul>
+            <div>
+                <input type="text" ref="messageValue" onChange={this.handleInput}/>
+                <button className="btn waves-effect waves-light red darken-3"
+                        type="submit" name="action" onClick={this.sendMessage}>Submit
+                    <i className="material-icons right">send</i>
+                </button>
+            </div>
+        </div>);
     }
 });
 
@@ -250,7 +283,7 @@ var Question = React.createClass({
     },
 
     openChat: function() {
-        Content.setState({active: <ChatRoom chatId={this.state.sessionId} />});
+        Content.changeState({active: <ChatRoom chatId={this.state.sessionId} />});
     },
 
     render: function () {
@@ -272,7 +305,7 @@ var QuestionsOverview = React.createClass({
 var Content = React.createClass({
     getDefaultProps: function() {
         return {
-            active: <ChatRoom chatId="1"/>
+            active: <QuestionsOverview chatId="1"/>
         }
     },
 
@@ -280,6 +313,10 @@ var Content = React.createClass({
         return {
             active: this.props.active
         }
+    },
+
+    changeState: function (domElement) {
+        this.setState({active: domElement});
     },
 
     render: function() {
