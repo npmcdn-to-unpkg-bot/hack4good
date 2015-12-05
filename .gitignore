@@ -21,3 +21,5 @@ hack2godly/project/plugins/project/
 *.idea_modules
 
 node_modules/
+
+.project
