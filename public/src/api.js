@@ -1,8 +1,14 @@
-jQuery(document).ready(function() {
+	var protocol = "http://";
+	var host = "10.32.51.186";
+	var port = "4000";
+	var application = "rest";
 
-	var host = "";
-	var port = "";
+	var apiUrl = protocol + host + ":" + port + "/" + application;
 
+	var sessionUrl = apiUrl + "/" + "sessions";
+	var documentsUrl = apiUrl + "/" + "documents";
+	var documentsTagsUrl = documentsUrl + "/" + "tags";
+	
 	function getSession(id) {
 		var sessionObj = {
 			'topic' : 'the holy doge',
@@ -28,34 +34,92 @@ jQuery(document).ready(function() {
 				},
 			]
 		};
-
 		return sessionObj;
-
 	};
 	
-	function getHelper(id) {
-		var helper = {
-			'avatarUrl' : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-			'name' : 'Ron Romba',
-			'role' : 'HELPER'
-		};
-		return helper;
-	};
+	function getSessions(language) {
+		var sessions = [{
+			'topic' : 'toilette',
+			'data' : 'Can someone tell me where the toilette is?',
+			'owner' : 6,
+			'date' : 1449317640,
+			'sessionId' : 20
+		},{
+			'topic' : 'Body',
+			'data' : 'Can anyone tell me whats happening to my body?',
+			'owner' : 5,
+			'date' : 1449317640,
+			'sessionId' : 49
+		},{
+			'topic' : 'Stuffs',
+			'data' : 'There is a lot of freaky stuff goin on, right?',
+			'owner' : 2,
+			'date' : 1449317640,
+			'sessionId' : 79
+		},{
+			'topic' : 'Test Topic',
+			'data' : 'I need to test this toic, who could join me with this?',
+			'owner' : 9,
+			'date' : 1449317640,
+			'sessionId' : 75
+		},{
+			'topic' : 'the holy doge',
+			'data' : 'How can I discuss gracefully about the holy doge?',
+			'owner' : 1,
+			'date' : 1449317640,
+			'sessionId' : 90
+		}];
+	}
 	
-	function getPadawan(id) {
+	function getUser(id) {
 		var padawan = {
 			'avatarUrl' : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
 			'name' : 'Ron Romba',
 			'role' : 'HELPER'
 		};
-		return padawan;
+		return padawan;		
 	};
+	
+	function createSession(language, ownerId, question, topic, onSuccess, onError) {
+		sessionUrl + "?lang=" + language + "&ownerId=" + ownerId;
+		
+		var postData = {
+			'data' : question,
+			'topic' : topic
+		};
+				 	
+		doRequest("POST", sessionUrl , "json", postData, onSuccess, onError);
+	}
 
 	function postMessage(sessionId, message) {
-		
+		var sessionObj = {
+			'topic' : 'the holy doge',
+			'data' : 'How can I discuss gracefully about the holy doge?',
+			'owner' : 2,
+			'date' : 1449317640,
+			'helper' : 4,
+			'messages' : [
+				{
+					'owner' : 4,
+					'data' : 'hey there, Im here to help you',
+					'date' : 1449317640 	
+				},
+				{
+					'owner' : 2,
+					'data' : 'cool stuff buddy, I really like you',
+					'date' : 1449317640 	
+				},
+				{
+					'owner' : 4,
+					'data' : 'stuff and thanks',
+					'date' : 1449317640 	
+				},
+			]
+		};
+		return sessionId;
 	};
-
-	function getDocuments(language) {
+	
+	function getDocuments(language, onSuccess, onError) {
 		var documents = {
 			'data' : [{
 				'title' : "this is a title",
@@ -88,9 +152,51 @@ jQuery(document).ready(function() {
 		};
 		return documents;
 	};
+	
+	function updateDocument(id, tags, onSuccess, onError) {
+		
+	}
+	
+	function createDocument(title, tags, docUrl, fileType, onSuccess, onError) {
+		var url = documentsUrl + "?title=" + title + "&url=" + encodeURIComponent(docUrl) + "&filetype=" + fileType;
+		var tagString = "&tags=";
+		
+		for (var i=0; i < tags.length; i++) {
+			tagString = tagString + tags[i];  
+		}; 
+		
+		doRequest("POST", url, "json", onSuccess, onError);
+	}
+	
+	function doRequest(requestMethod, requestUrl, requestDataType, onSuccess, onError) {
+		doRequest(requestMethod, requestUrl, undefined, requestDataType, onSuccess, onError);
+	}
 
-	function doRequest(method, url, postData) {
+	function doRequest(requestMethod, requestUrl, postData, requestDataType, onSuccess, onError) {
+		var request = $.ajax({
+			url: requestUrl,
+			method: requestMethod,
+		});
+		
+		if (requestDataType !== undefined) {
+			console.log("datatype is defined");
+			request.dataType = requestDataType;
+		}
+		
+		if (postData !== undefined) {
+			console.log("data is defined");
+			request.data = postData;
+		} 
 
+		request.done(onSuccess);
+		
+		request.fail(onError); 
+		
+		request.always(function() {
+			console.log("completed request");
+		});
 	};
-
-});
+	
+	function isRealFunction(f) {
+		return typeof f !== 'undefined' && $.isFunction(f);
+	}
