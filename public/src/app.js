@@ -150,19 +150,28 @@ var RoleChooser = React.createClass({
 
 var DocumentView = React.createClass({
     getInitialState: function () {
-        return this.props;
+        var stateData = {};
+        stateData.documentData = this.props;
+        stateData.styleHide = {
+            visibility: 'hidden',
+            height: '0px'
+        };
+        return stateData;
     },
 
-    onClick: function () {
-        console.log("Clickt on doc"+ this.state.title);
+    extendView: function () {
+        console.log("Click on doc"+ this.state.title);
     },
 
     render: function() {
         return (
-        <div className="card blue-grey darken-1">
+        <div className="card blue-grey darken-1" onClick={this.extendView()}>
             <div className="card-content white-text">
-                <span className="card-title">{this.state.title}</span>
-                <p>{this.state.url}</p>
+                <span className="card-title">{this.state.documentData.title}</span>
+                <p>{this.state.documentData.url}</p>
+                <div style={this.state.styleHide}>
+                    <iframe src={this.state.documentData.url}></iframe>
+                </div>
             </div>
             <div className="card-action">
                 <a href="#">add tags</a>
