@@ -17,7 +17,7 @@ PROBLEME DIE IMMER WIEDERKEHREN
   - wo kriegen wir gute quellen her??!?!
   - was machen wir, wenn wir keine guten quellen finden koennen??!?!
   
-HINWEISE
+HINWEISE/ANREGUNG
 -	Chat mit zum Sammeln von Metainformationen (Tags, usw.)
    -   Metainformation pro "Session"
    -   zu den Tags werden Videos, Dokumente etc. analysiert und gesucht
