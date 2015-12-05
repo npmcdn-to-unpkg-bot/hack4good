@@ -76,7 +76,7 @@
 		}];
 		
 		if(isMock) {
-			return sessions;
+			onSuccess(sessios);
 		}else {
 			doRequest("GET", sessionUrl, "json", onSuccess, onError);
 		}
@@ -98,14 +98,14 @@
 				
 	};
 	
-	function createSession(language, ownerId, question, topic, onSuccess, onError) {
+	function createSession(isMock, language, ownerId, question, topic, onSuccess, onError) {
 		sessionUrl + "?lang=" + language + "&ownerId=" + ownerId;
 		
 		var postData = {
 			'data' : question,
 			'topic' : topic
 		};
-				 	
+		
 		doRequest("POST", sessionUrl , "json", postData, onSuccess, onError);
 	}
 
