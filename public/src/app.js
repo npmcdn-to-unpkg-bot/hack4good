@@ -32,6 +32,46 @@ function getDocuments(language) {
     return documents;
 };
 
+function getSession(id) {
+    var sessionObj = {
+        'topic' : 'the holy doge',
+        'data' : 'How can I discuss gracefully about the holy doge?',
+        'owner' : 2,
+        'date' : 1449317640,
+        'helper' : 4,
+        'messages' : [
+            {
+                'owner' : 4,
+                'data' : 'hey there, Im here to help you',
+                'date' : 1449317640
+            },
+            {
+                'owner' : 2,
+                'data' : 'cool stuff buddy, I really like you',
+                'date' : 1449317640
+            },
+            {
+                'owner' : 4,
+                'data' : 'stuff and thanks',
+                'date' : 1449317640
+            },
+        ]
+    };
+    return sessionObj;
+};
+
+function getHelper(id) {
+    var helper = {
+        'avatarUrl' : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
+        'name' : 'Ron Romba',
+        'role' : 'HELPER'
+    };
+    return helper;
+};
+
+
+///////////////////////////////////////////////
+
 var Header = React.createClass({
     render: function () {
         return (
@@ -175,6 +215,11 @@ var DocumentView = React.createClass({
             </div>
             <div className="card-action">
                 <a href="#">add tags</a>
+                <a href="#" className="activator">more</a>
+            </div>
+            <div className="card-reveal">
+                <span className="card-title grey-text text-darken-4">{this.state.documentData.title}<i className="material-icons right">close</i></span>
+                <iframe src={this.state.documentData.url}></iframe>
             </div>
         </div>);
     }
@@ -208,27 +253,61 @@ var ContentTaggingOverview = React.createClass({
 });
 
 var ChatMessage = React.createClass({
+
+    getInitialState: function() {
+        var stateData = { };
+
+        stateData.owner     = this.props.owner;
+        stateData.data      = this.props.data;
+        stateData.date      = this.props.date;
+        stateData.owner     = getHelper(stateData.owner);
+
+
+        return stateData;
+    },
+
     render: function () {
+        console.log(this.state);
+
         return (
-        <li class="collection-item avatar">
-            <img src="http://materializecss.com/images/yuna.jpg" alt="" class="circle" />
-            <span class="title">Title</span>
-            <p>First Line Second Line</p>
-            <a href="#!" class="secondary-content"><i class="material-icons">grade</i></a>
+        <li className="collection-item avatar">
+            <img src={this.state.owner.avatarUrl} alt="" className="circle" />
+            <span className="title">{this.state.owner.name}</span>
+            <p>{this.state.data}</p>
         </li>);
     }
 });
 
 var ChatRoom = React.createClass({
+    getDefaultProps: function() {
+        return {
+            chatId: 1
+        };
+    },
+
+    getInitialState: function () {
+        return getSession(this.props.chatId)
+    },
+
+    getChatMessages: function () {
+        var chatroomData = [];
+
+        this.state.messages.forEach(function (message) {
+            chatroomData.push(<ChatMessage owner={message.owner} data={message.data} date={message.date} />)
+        }, this);
+
+        return chatroomData;
+    },
+
     render: function() {
-        return (<ul></ul>);
+        return (<ul className="collection">{this.getChatMessages()}</ul>);
     }
 });
 
 var Content = React.createClass({
     getDefaultProps: function() {
         return {
-            active: <ChatMessage />
+            active: <ContentTaggingOverview chatId="1"/>
         }
     },
 
