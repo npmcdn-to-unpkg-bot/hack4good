@@ -1,3 +1,14 @@
+	var protocol = "http://";
+	var host = "10.32.51.186";
+	var port = "4000";
+	var application = "test";
+
+	var apiUrl = protocol + host + ":" + port + "/" + application;
+
+	var sessionUrl = apiUrl + "/" + "sessions";
+	var documentsUrl = apiUrl + "/" + "documents";
+	var documentsTagsUrl = documentsUrl + "/" + "tags";
+	
 	function getSession(id) {
 		var sessionObj = {
 			'topic' : 'the holy doge',
@@ -26,7 +37,7 @@
 		return sessionObj;
 	};
 	
-	function getSessions() {
+	function getSessions(language) {
 		var sessions = [{
 			'topic' : 'toilette',
 			'data' : 'Can someone tell me where the toilette is?',
@@ -60,23 +71,25 @@
 		}];
 	}
 	
-	function getHelper(id) {
-		var helper = {
-			'avatarUrl' : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-			'name' : 'Ron Romba',
-			'role' : 'HELPER'
-		};
-		return helper;
-	};
-	
-	function getPadawan(id) {
+	function getUser(id) {
 		var padawan = {
 			'avatarUrl' : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
 			'name' : 'Ron Romba',
 			'role' : 'HELPER'
 		};
-		return padawan;
+		return padawan;		
 	};
+	
+	function createSession(language, ownerId, question, topic, onSuccess, onError) {
+		sessionUrl + "?lang=" + language + "&ownerId=" + ownerId;
+		
+		var postData = {
+			'data' : question,
+			'topic' : topic
+		};
+				 	
+		doRequest("POST", sessionUrl , "json", postData, onSuccess, onError);
+	}
 
 	function postMessage(sessionId, message) {
 		var sessionObj = {
@@ -106,7 +119,7 @@
 		return sessionId;
 	};
 	
-	function getDocuments(language) {
+	function getDocuments(language, onSuccess, onError) {
 		var documents = {
 			'data' : [{
 				'title' : "this is a title",
@@ -139,6 +152,10 @@
 		};
 		return documents;
 	};
+	
+	function updateDocument(id, tags, onSuccess, onError) {
+		
+	}
 	
 	function doRequest(requestMethod, requestUrl, requestDataType, onSuccess, onError) {
 		doRequest(requestMethod, requestUrl, undefined, requestDataType, onSuccess, onError);
