@@ -1,8 +1,3 @@
-jQuery(document).ready(function() {
-
-	var host = "";
-	var port = "";
-
 	function getSession(id) {
 		var sessionObj = {
 			'topic' : 'the holy doge',
@@ -28,9 +23,7 @@ jQuery(document).ready(function() {
 				},
 			]
 		};
-
 		return sessionObj;
-
 	};
 	
 	function getHelper(id) {
@@ -54,7 +47,7 @@ jQuery(document).ready(function() {
 	function postMessage(sessionId, message) {
 		
 	};
-
+	
 	function getDocuments(language) {
 		var documents = {
 			'data' : [{
@@ -88,9 +81,36 @@ jQuery(document).ready(function() {
 		};
 		return documents;
 	};
+	
+	function doRequest(requestMethod, requestUrl, requestDataType, onSuccess, onError) {
+		doRequest(requestMethod, requestUrl, undefined, requestDataType, onSuccess, onError);
+	}
 
-	function doRequest(method, url, postData) {
+	function doRequest(requestMethod, requestUrl, postData, requestDataType, onSuccess, onError) {
+		var request = $.ajax({
+			url: requestUrl,
+			method: requestMethod,
+		});
+		
+		if (requestDataType !== undefined) {
+			console.log("datatype is defined");
+			request.dataType = requestDataType;
+		}
+		
+		if (postData !== undefined) {
+			console.log("data is defined");
+			request.data = postData;
+		} 
 
+		request.done(onSuccess);
+
+		request.fail(onError); 
+		
+		request.always(function() {
+			console.log("completed request");
+		});
 	};
-
-});
+	
+	function isRealFunction(f) {
+		return typeof f !== 'undefined' && $.isFunction(f);
+	}
