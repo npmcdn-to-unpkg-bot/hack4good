@@ -40,7 +40,8 @@ REST
 
 Datenmodel 
 
-	User
+	User	
+		avatarUrl : String
 		name : String
 		role : String/Enum(helper,padawan)
 	
