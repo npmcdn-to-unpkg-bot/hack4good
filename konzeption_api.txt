@@ -10,8 +10,8 @@ REST
 		return - Session
 
 
-	POST
-		/session/<session_id>
+	POST	-	schickt neue Nachricht in den Chat
+		/session/<session_id>/[ownerId]
 			message : String
 		return - Session
 
@@ -33,7 +33,7 @@ REST
     /documents/ [title] [url] ([tags]) ([filetype])
 
 	POST	-	erzeugt neue tags zu einem dokument  
-		/documents/tags
+		/documents/<id>/tags/
 			tags : List<Tag>		
 		return - void 
 

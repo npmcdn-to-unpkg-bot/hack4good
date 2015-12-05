@@ -7,37 +7,42 @@
 
 	var sessionUrl = apiUrl + "/" + "sessions";
 	var documentsUrl = apiUrl + "/" + "documents";
-	var documentsTagsUrl = documentsUrl + "/" + "tags";
+	var userUrl = apiUrl + "/" + "users";
 	
-	function getSession(id) {
+	function getSession(id, isMock, onSuccess, onError) {
 		var sessionObj = {
 			'topic' : 'the holy doge',
 			'data' : 'How can I discuss gracefully about the holy doge?',
-			'owner' : 2,
+			'ownerId' : 2,
 			'date' : 1449317640,
-			'helper' : 4,
+			'helperId' : 4,
 			'messages' : [
 				{
-					'owner' : 4,
+					'ownerId' : 4,
 					'data' : 'hey there, Im here to help you',
 					'date' : 1449317640 	
 				},
 				{
-					'owner' : 2,
+					'ownerId' : 2,
 					'data' : 'cool stuff buddy, I really like you',
 					'date' : 1449317640 	
 				},
 				{
-					'owner' : 4,
+					'ownerId' : 4,
 					'data' : 'stuff and thanks',
 					'date' : 1449317640 	
 				},
 			]
 		};
-		return sessionObj;
+		
+		if(isMock) {
+			onSuccess(sessionObj);
+		}else{
+			doRequest("GET", sessionUrl + "/" + id, undefined, "json", onSuccess, onError);
+		}
 	};
 	
-	function getSessions(language) {
+	function getSessions(language, isMock, onSuccess, onError) {
 		var sessions = [{
 			'topic' : 'toilette',
 			'data' : 'Can someone tell me where the toilette is?',
@@ -69,15 +74,28 @@
 			'date' : 1449317640,
 			'sessionId' : 90
 		}];
+		
+		if(isMock) {
+			return sessions;
+		}else {
+			doRequest("GET", sessionUrl, "json", onSuccess, onError);
+		}
 	}
 	
-	function getUser(id) {
+	function getUser(id, isMock, onSuccess, onError) {
 		var padawan = {
 			'avatarUrl' : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
 			'name' : 'Ron Romba',
 			'role' : 'HELPER'
 		};
-		return padawan;		
+		
+		if (isMock) {
+			onSuccess(padawan);
+		}else {
+			doRequest("GET", userUrl + "/" + id, onSuccess, onError);
+		}
+
+				
 	};
 	
 	function createSession(language, ownerId, question, topic, onSuccess, onError) {
@@ -91,7 +109,7 @@
 		doRequest("POST", sessionUrl , "json", postData, onSuccess, onError);
 	}
 
-	function postMessage(sessionId, message) {
+	function postMessage(isMock, sessionId, ownerId, message, onSuccess, onError) {
 		var sessionObj = {
 			'topic' : 'the holy doge',
 			'data' : 'How can I discuss gracefully about the holy doge?',
@@ -116,10 +134,19 @@
 				},
 			]
 		};
-		return sessionId;
+		if (isMock) {
+			onSuccess(sessionObj);
+		}else {
+			var data = {
+				'message' : message
+			};
+			
+			var url = sessionUrl + "/" + sessionId + "?ownerId=" + ownerId;
+			doRequest("POST", url, data, "json", onSuccess, onError);
+		}
 	};
 	
-	function getDocuments(language, onSuccess, onError) {
+	function getDocuments(isMock, language, onSuccess, onError) {
 		var documents = {
 			'data' : [{
 				'title' : "this is a title",
@@ -150,11 +177,17 @@
 				'date' : 1449317640
 			}]
 		};
-		return documents;
+		if (isMock) {
+			onSuccess(documents);	
+		}else {
+			doRequest("GET", documentsUrl, undefined, "json", onSuccess, onError);
+		}
+		
 	};
 	
 	function updateDocument(id, tags, onSuccess, onError) {
-		
+		var url = documentsUrl + "/" + id + "/" + "tags";
+		doRequest("POST", url, tags, "json", onSuccess, onError);
 	}
 	
 	function createDocument(title, tags, docUrl, fileType, onSuccess, onError) {
@@ -168,10 +201,6 @@
 		doRequest("POST", url, "json", onSuccess, onError);
 	}
 	
-	function doRequest(requestMethod, requestUrl, requestDataType, onSuccess, onError) {
-		doRequest(requestMethod, requestUrl, undefined, requestDataType, onSuccess, onError);
-	}
-
 	function doRequest(requestMethod, requestUrl, postData, requestDataType, onSuccess, onError) {
 		var request = $.ajax({
 			url: requestUrl,
