@@ -219,9 +219,7 @@
 
 		request.done(onSuccess);
 		
-		request.fail(function(error) {
-			console.log(error);
-		}); 
+		request.fail(onError); 
 		
 		request.always(function() {
 			console.log("completed request");
