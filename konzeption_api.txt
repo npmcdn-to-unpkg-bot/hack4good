@@ -1,0 +1,73 @@
+<path-param> 
+[query-param]
+
+REST
+
+/hack4good
+	
+	GET		-	liefert alle nachrichten zu einer session-id
+		/session/<session_id>
+		return - Session
+
+
+	POST
+		/session/<session_id>
+			message : String
+		return - Session
+
+
+	GET		-	liefert alle Dokumente die ungetagt sind, um sie durch einen Helfer taggen zu lassen  
+		/documents		
+		return - List<Documents>
+
+
+	POST	-	erzeugt neue tags zu einem dokument  
+		/documents/tags
+			tags : List<Tag>		
+		return - void 
+
+
+	GET 		-	liefert alle questions die im pool sind
+		/questions [language]
+		return - List<Question>
+			
+
+	POST	-	schmeisst neue frage in den pool / liefert session_id für den chat 
+		/question/<owner_id> [language]
+			question : String
+			topic : String	
+		return - session_id 
+
+Datenmodel 
+
+	User	
+		avatarUrl : String
+		name : String
+		role : String/Enum(helper,padawan)
+	
+	Tag
+		name : String (unique)
+		date	: long (timestamp) 
+		
+	Document	
+		title : String (unique)
+		tags : List<Tag> (ids)
+		url : String
+		date : long (timestamp)
+
+	Question
+		topic : String
+		data : String 
+		owner : userId
+		date : long (timestamp) 
+
+	Session
+		relatedQuestion : questionId
+		owner : userId
+		helper : helperId
+		messages : List<Messages> (ids)
+		
+	Message
+		data : String
+		date : long (timestamp)
+		owner : userId
