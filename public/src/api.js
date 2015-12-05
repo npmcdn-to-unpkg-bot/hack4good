@@ -9,7 +9,7 @@
 	var documentsUrl = apiUrl + "/" + "documents";
 	var userUrl = apiUrl + "/" + "users";
 	
-	function getSession(id, isMock, onSuccess, onError) {
+	function getSession(isMock, id, onSuccess, onError) {
 		var sessionObj = {
 			'topic' : 'the holy doge',
 			'data' : 'How can I discuss gracefully about the holy doge?',
@@ -42,7 +42,7 @@
 		}
 	};
 	
-	function getSessions(language, isMock, onSuccess, onError) {
+	function getSessions(isMock, language, onSuccess, onError) {
 		var sessions = [{
 			'topic' : 'toilette',
 			'data' : 'Can someone tell me where the toilette is?',
@@ -82,7 +82,7 @@
 		}
 	}
 	
-	function getUser(id, isMock, onSuccess, onError) {
+	function getUser(isMock, id, onSuccess, onError) {
 		var padawan = {
 			'avatarUrl' : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
 			'name' : 'Ron Romba',
@@ -219,7 +219,9 @@
 
 		request.done(onSuccess);
 		
-		request.fail(onError); 
+		request.fail(function(error) {
+			console.log(error);
+		}); 
 		
 		request.always(function() {
 			console.log("completed request");
