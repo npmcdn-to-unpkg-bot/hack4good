@@ -15,11 +15,22 @@ REST
 			message : String
 		return - Session
 
+	GET 		-	liefert alle questions die im pool sind
+		/session [language]
+		return - List<Question>
+
+	POST	-	schmeisst neue frage in den pool / liefert session_id für den chat 
+		/session/ [owner_id] [language]
+			data : String
+			topic : String	
+		return - session_id 
 
 	GET		-	liefert alle Dokumente die ungetagt sind, um sie durch einen Helfer taggen zu lassen  
 		/documents		
 		return - List<Documents>
 
+  POST - neues document einfuegen
+    /documents/ [title] [url] ([tags]) ([filetype])
 
 	POST	-	erzeugt neue tags zu einem dokument  
 		/documents/tags
@@ -27,45 +38,33 @@ REST
 		return - void 
 
 
-	GET 		-	liefert alle questions die im pool sind
-		/questions [language]
-		return - List<Question>
-			
-
-	POST	-	schmeisst neue frage in den pool / liefert session_id für den chat 
-		/question/<owner_id> [language]
-			question : String
-			topic : String	
-		return - session_id 
-
-Datenmodel 
+DATENMODEL 
 
 	User	
-		avatarUrl : String
+		avatarUrl : String 
 		name : String
 		role : String/Enum(helper,padawan)
 	
 	Tag
 		name : String (unique)
-		date	: long (timestamp) 
+    lang : String/Enum(set of languages)
+		date	: DateTime
 		
-	Document	
+	Document:
 		title : String (unique)
 		tags : List<Tag> (ids)
 		url : String
-		date : long (timestamp)
-
-	Question
-		topic : String
-		data : String 
-		owner : userId
-		date : long (timestamp) 
+		date : DateTime
+    filetype: String/Enum
 
 	Session
-		relatedQuestion : questionId
+		topic : String // Header
+		data : String  // Question
 		owner : userId
+		date : long (timestamp) 
 		helper : helperId
-		messages : List<Messages> (ids)
+		messages : List<Messages> (ids) //FK
+    (tags : Seq<String>)
 		
 	Message
 		data : String
