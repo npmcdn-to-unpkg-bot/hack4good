@@ -1,7 +1,9 @@
 package database
 
-import org.joda.time.DateTime
 import slick.driver.H2Driver.api._
+import org.json4s._
+import org.json4s.native.Serialization
+import org.json4s.native.Serialization.{read, write}
 
 /**
  * Created by jannis on 12/5/15.
@@ -14,37 +16,12 @@ object Languages {
 
 object TypeConversion {
   import UserRole._
-  val Sep = "⬲"
   implicit def user2Role(s: String): UserRole = {
     UserRole.values.toList.find{ r => r.toString == s}.getOrElse(Undefined)
   }
 
   implicit def role2User(r: UserRole): String = {
     r.toString
-  }
-
-  implicit def long2Date(l: Long): DateTime = {
-    new DateTime(l)
-  }
-
-  implicit def date2Long(d: DateTime): Long = {
-    d.getMillis
-  }
-
-  def packMessage(messages: List[String]) = {
-    messages.mkString(Sep)
-  }
-
-  def unpackMessages(messages: String) = {
-    messages.split(Sep).toList
-  }
-
-  def packList[T](l: List[T]) = {
-    l.mkString(Sep)
-  }
-
-  def unpackList[T](s: String) = {
-    s.split(Sep).map { _.toString}
   }
 }
 
@@ -58,7 +35,7 @@ case class User(
   name: String,
   role: UserRole.UserRole,
   avatarUrl: String,
-  date: DateTime)
+  date: Long)
 
 object UserTable {
   import UserRole._
@@ -66,11 +43,11 @@ object UserTable {
   def props = TableQuery[Props]
 
   def parseRow(row: (Int, String, String, String, Long)) = {
-    User(row._1, row._2, TypeConversion.user2Role(row._3), row._4, TypeConversion.long2Date(row._5))
+    User(row._1, row._2, TypeConversion.user2Role(row._3), row._4, row._5)
   }
 
   def writeRow(user: User) = {
-    Some((user.id, user.name, user.role.toString, user.avatarUrl, user.date.getMillis))
+    Some((user.id, user.name, user.role.toString, user.avatarUrl, user.date))
   }
 
   class Props(tag: Tag) extends Table[User](tag, tableName) {
@@ -87,8 +64,8 @@ object UserTable {
 case class DocumentTag(
   id: Int,
   name: String,
-  lang: UserRole.UserRole,
-  date: DateTime)
+  lang: String,
+  date: Long)
 
 object TagTable {
   val tableName = "tags"
@@ -97,11 +74,11 @@ object TagTable {
   class Props(tag: Tag) extends Table[DocumentTag](tag, tableName) {
 
     def parseRow(row: (Int, String, String, Long)) = {
-      DocumentTag(row._1, row._2, TypeConversion.user2Role(row._3), new DateTime(row._4))
+      DocumentTag(row._1, row._2, row._3, row._4)
     }
 
     def writeRow(tag: DocumentTag) = {
-      Some((tag.id, tag.name, tag.lang.toString, tag.date.getMillis))
+      Some((tag.id, tag.name, tag.lang.toString, tag.date))
     }
 
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
@@ -131,36 +108,37 @@ object DocumentTable {
   }
 }
 
-case class Session(
+case class QuestionSession(
   id: Int,
   topic: String,
   data: String,
   ownerId: Int,
-  date: DateTime,
+  date: Long,
   helperId: Int,
-  messages: List[Int],
-  tags: List[Int])
+  messages: List[Message],
+  tags: List[DocumentTag])
 
 object SessionTable {
+  implicit val formats = Serialization.formats(NoTypeHints)
   val tableName = "sessions"
   def props = TableQuery[Props]
 
-  class Props(tag: Tag) extends Table[Session](tag, tableName) {
+  class Props(tag: Tag) extends Table[QuestionSession](tag, tableName) {
     def parseRow(row: (Int, String, String, Int, Long, Int, String, String)) = {
-      Session(
+      QuestionSession(
         row._1,
         row._2,
         row._3,
         row._4,
-        new DateTime(row._5),
+        row._5,
         row._6,
-        List(),
-        List())
+        read[List[Message]](row._7),
+        read[List[DocumentTag]](row._8))
     }
 
-    def writeRow(s: Session) = {
-      Some(s.id, s.topic, s.data, s.ownerId, s.date.getMillis, s.helperId,
-        s.messages.mkString(""), s.tags.mkString(""))
+    def writeRow(s: QuestionSession) = {
+      Some((s.id, s.topic, s.data, s.ownerId, s.date, s.helperId,
+        write(s.messages), write(s.tags)))
     }
 
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
@@ -177,13 +155,6 @@ object SessionTable {
 case class Message(
   id: Long,
   data: String,
-  date: DateTime,
+  date: Long,
   sessionId: Int,
   ownerId: Int)
-
-
-//object TagTable {
-//  val tableName = "tags"
-//  def props = TableQuery[Props]
-//}
-
