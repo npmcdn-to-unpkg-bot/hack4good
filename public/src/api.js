@@ -26,6 +26,40 @@
 		return sessionObj;
 	};
 	
+	function getSessions() {
+		var sessions = [{
+			'topic' : 'toilette',
+			'data' : 'Can someone tell me where the toilette is?',
+			'owner' : 6,
+			'date' : 1449317640,
+			'sessionId' : 20
+		},{
+			'topic' : 'Body',
+			'data' : 'Can anyone tell me whats happening to my body?',
+			'owner' : 5,
+			'date' : 1449317640,
+			'sessionId' : 49
+		},{
+			'topic' : 'Stuffs',
+			'data' : 'There is a lot of freaky stuff goin on, right?',
+			'owner' : 2,
+			'date' : 1449317640,
+			'sessionId' : 79
+		},{
+			'topic' : 'Test Topic',
+			'data' : 'I need to test this toic, who could join me with this?',
+			'owner' : 9,
+			'date' : 1449317640,
+			'sessionId' : 75
+		},{
+			'topic' : 'the holy doge',
+			'data' : 'How can I discuss gracefully about the holy doge?',
+			'owner' : 1,
+			'date' : 1449317640,
+			'sessionId' : 90
+		}];
+	}
+	
 	function getHelper(id) {
 		var helper = {
 			'avatarUrl' : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
