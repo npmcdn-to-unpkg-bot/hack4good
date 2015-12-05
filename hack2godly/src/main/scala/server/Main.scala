@@ -5,7 +5,9 @@ import server.WebApp.Arguments
 import unfiltered.response.ResponseString
 import unfiltered.request._
 
-import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration
+import scala.concurrent.{Await, Future}
 import scala.util.{Success, Failure}
 
 //import slick.driver.MySQLDriver.api._
@@ -32,6 +34,7 @@ object Main extends WebApp[Args] {
       case Failure(ex) => println(s"Could not setup db because of, $ex")
       case Success(_) => println("Successfully setup database")
     }
+    Await.result(setupFuture, Duration(1, duration.SECONDS))
 
     println("test output from the database")
     val q = for (d <- docs) yield d.content
@@ -39,7 +42,7 @@ object Main extends WebApp[Args] {
     val f: Future[Seq[String]] = db.run(a)
 
     f.onComplete {
-      case Success(r) => println(r)
+      case Success(r) => println(s"Result: $r")
       case Failure(ex) => println(s"Couldn't recieve data because of $ex")
     }
 
