@@ -38,7 +38,7 @@
 	};
 	
 	function getSessions(language) {
-		var sessions = [{
+		return [{
 			'topic' : 'toilette',
 			'data' : 'Can someone tell me where the toilette is?',
 			'owner' : 6,

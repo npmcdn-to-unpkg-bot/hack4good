@@ -186,8 +186,7 @@ var ChatMessage = React.createClass({
         stateData.owner     = this.props.owner;
         stateData.data      = this.props.data;
         stateData.date      = this.props.date;
-        stateData.owner     = getHelper(stateData.owner);
-
+        stateData.owner     = getUser(stateData.owner);
 
         return stateData;
     },
@@ -230,15 +229,61 @@ var ChatRoom = React.createClass({
     }
 });
 
+var Question = React.createClass({
+    getDefaultProps: function() {
+        return {
+            id: 1
+        }
+    },
+
+    getInitialState: function() {
+        var stateData = { }, sessionInfo = getSession(this.props.id);
+
+        stateData.owner     = sessionInfo.owner;
+        stateData.data      = sessionInfo.data;
+        stateData.date      = sessionInfo.date;
+        stateData.owner     = getUser(stateData.owner);
+        stateData.topic     = sessionInfo.topic;
+        stateData.sessionId = sessionInfo.sessionId
+
+        return stateData;
+    },
+
+    openChat: function() {
+        Content.setState({active: <ChatRoom chatId={this.state.sessionId} />});
+    },
+
+    render: function () {
+        return (
+            <li className="collection-item avatar" onClick={this.openChat}>
+                <img src={this.state.owner.avatarUrl} alt="" className="circle" />
+                <span className="title">{this.state.owner.name}</span>
+                <p>{this.state.data}</p>
+            </li>);
+    }
+});
+
+var QuestionsOverview = React.createClass({
+    render: function() {
+        return <ul className="collection"><Question id="3234" /></ul>;
+    }
+});
+
 var Content = React.createClass({
     getDefaultProps: function() {
         return {
-            active: <ContentTaggingOverview chatId="1"/>
+            active: <ChatRoom chatId="1"/>
+        }
+    },
+
+    getInitialState: function () {
+        return {
+            active: this.props.active
         }
     },
 
     render: function() {
-        return this.props.active;
+        return this.state.active;
     }
 });
 
