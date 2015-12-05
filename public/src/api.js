@@ -79,7 +79,31 @@
 	};
 
 	function postMessage(sessionId, message) {
-		
+		var sessionObj = {
+			'topic' : 'the holy doge',
+			'data' : 'How can I discuss gracefully about the holy doge?',
+			'owner' : 2,
+			'date' : 1449317640,
+			'helper' : 4,
+			'messages' : [
+				{
+					'owner' : 4,
+					'data' : 'hey there, Im here to help you',
+					'date' : 1449317640 	
+				},
+				{
+					'owner' : 2,
+					'data' : 'cool stuff buddy, I really like you',
+					'date' : 1449317640 	
+				},
+				{
+					'owner' : 4,
+					'data' : 'stuff and thanks',
+					'date' : 1449317640 	
+				},
+			]
+		};
+		return sessionId;
 	};
 	
 	function getDocuments(language) {
