@@ -16,3 +16,10 @@ WAS WIR MOGEN KLAEREN MUESSEN
 PROBLEME DIE IMMER WIEDERKEHREN
   - wo kriegen wir gute quellen her??!?!
   - was machen wir, wenn wir keine guten quellen finden koennen??!?!
+  
+HINWEISE
+	-	Chat mit zum Sammeln von Metainformationen (Tags, usw.)
+		-	Metainformation pro "Session"
+		-	zu den Tags werden Videos, Dokumente etc. analysiert und gesucht
+		-	Snapchat-Phänomen: nach vielleicht 8 Tagen geht der Verlauf + Dokumente (Tags) verloren
+			-	motiviert die Leute Dokumente zeitnah durchzuarbeiten
