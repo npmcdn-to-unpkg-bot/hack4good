@@ -5,13 +5,17 @@
 .cache
 .history
 .lib/
-dist/*
-target/
-lib_managed/
-src_managed/
-project/boot/
-project/plugins/project/
+*.iml
+hack2godly/dist/*
+hack2godly/target/
+hack2godly/lib_managed/
+hack2godly/src_managed/
+hack2godly/project/boot/
+hack2godly/project/plugins/project/
 
 # Scala-IDE specific
 .scala_dependencies
 .worksheet
+
+*.idea
+*.idea_modules
