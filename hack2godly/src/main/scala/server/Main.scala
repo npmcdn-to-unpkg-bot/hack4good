@@ -3,6 +3,7 @@ package server
 import java.security.InvalidParameterException
 
 import database._
+import org.joda.time.DateTime
 
 import server.WebApp.Arguments
 import unfiltered.response.ResponseString
@@ -42,9 +43,23 @@ object Main extends WebApp[Args] {
         1235465,
         12354,
         List(
-          Message(1, "du wurst", 12345, 42, 12),
-          Message(2, "trink wurstwasser", 12346, 42, 12),
-          Message(3, "na gut", 12347, 42, 12)),
+          Message("du wurst", 12345, 42, 12),
+          Message("trink wurstwasser", 12346, 42, 12),
+          Message("na gut", 12347, 42, 12)),
+        List(DocumentTag(43, "kultur", Languages.Deutsch, 123545)))
+    }
+
+    val sessNoHelp = for(i <- (10001 to 10010)) yield {
+      QuestionSession(
+        i,
+        "wurstwasserr trinken", "Muss ich, wenn ich in Deutschland normal sein will, jeden tag wurstwasser trinken?",
+        12,
+        1235465,
+        -1,
+        List(
+          Message("du wurst", 12345, 42, 12),
+          Message("trink wurstwasser", 12346, 42, 12),
+          Message("na gut", 12347, 42, 12)),
         List(DocumentTag(43, "kultur", Languages.Deutsch, 123545)))
     }
 
@@ -53,7 +68,8 @@ object Main extends WebApp[Args] {
       docs.schema.create,
       sessions.schema.create,
       docs += Document(0, "content", "owner", "tags"),
-      sessions ++= sess.toSeq
+      sessions ++= sess.toSeq,
+      sessions ++= sessNoHelp.toSeq
     )
 
     val setupFuture = db.run(setup)
@@ -74,13 +90,51 @@ object Main extends WebApp[Args] {
         ResponseString(paramsMap.getOrElse("wurst", Seq("nix geworden")).mkString(","))
 
       case req@GET(Path(Seg(base :: "sessions" :: sessionId :: Nil)) & Params(params)) =>
-        val q = for (s <- sessions) yield s
+        val q = for {
+          sq <- sessions if sq.id === sessionId.toInt
+        } yield (sq.id, sq.topic, sq.data, sq.ownerId, sq.date, sq.helperId, sq.messages, sq.tags)
         val a = q.result
-        val f: Future[Seq[QuestionSession]] = db.run(a)
+        val f: Future[Seq[(Int, String, String, Int, Long, Int, String, String)]] = db.run(a)
         val sess = Await.result(f, Duration(10, duration.SECONDS))
-        val targetSession = sess.filter(_.id == sessionId.toInt).headOption
-          .getOrElse(throw new InvalidParameterException(s"no session with id $sessionId in db"))
-        ResponseString(write(targetSession))
+        ResponseString(write(
+          sess.map { case (id, topic, data, owner, date, helper, messages, tags) =>
+            QuestionSession(id, topic, data, owner, date, helper,
+              read[Seq[Message]](messages).toList, read[Seq[DocumentTag]](tags).toList)
+          }.head))
+
+      case req@GET(Path(Seg(base :: "sessions" :: Nil)) & Params(params)) =>
+        val q = for {
+          sq <- sessions if sq.helperId < 0
+        } yield (sq.id, sq.topic, sq.data, sq.ownerId, sq.date, sq.helperId, sq.tags)
+        val a = q.result
+        val f: Future[Seq[(Int, String, String, Int, Long, Int, String)]] = db.run(a)
+        val sess = Await.result(f, Duration(10, duration.SECONDS))
+        ResponseString(write(sess.map { case(id, topic, data, owner, date, helper, tags) =>
+          Question(id, topic, data, owner, date, helper, read[Seq[DocumentTag]](tags).toList)
+        }))
+
+      case req@POST(Path(Seg(base :: "sessions" :: sessionId :: Nil)) & Params(params)) =>
+        val q = for {
+          sq <- sessions if sq.id === sessionId.toInt
+        } yield (sq.messages, sq.ownerId)
+        val a = q.result
+        val f: Future[Seq[(String, Int)]] = db.run(a)
+        val sess = Await.result(f, Duration(10, duration.SECONDS)).head
+        val oldMessages = read[Seq[Message]](sess._1)
+        val bodyString = Body.string(req)
+        val newMessageContent = read[SimpleMessage](bodyString)
+        val newMessage = Message(newMessageContent.message, new DateTime().getMillis, sessionId.toInt, sess._2)
+        val updateQ = for {
+          sq <- sessions if sq.id === sessionId.toInt
+        } yield sq.messages
+        println(write(oldMessages ++ Seq(newMessage)))
+        db.run(updateQ.update(write(oldMessages ++ Seq(newMessage))))
+        Thread.sleep(1000)
+        ResponseString("updated")
+
+
+
+
     }
   }
 

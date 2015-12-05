@@ -12,6 +12,7 @@ import org.json4s.native.Serialization.{read, write}
 object Languages {
   val English = "ENGLISH"
   val Deutsch = "DEUTSCH"
+  val Undefined = "Undefined"
 }
 
 object TypeConversion {
@@ -146,15 +147,27 @@ object SessionTable {
     def data = column[String]("data")
     def ownerId = column[Int]("owner_id")
     def date = column[Long]("timestamp")
-    def helperId = column[Int]("helper_id")
+    def helperId = column[Int]("helper_id", O.Default(-1))
     def messages = column[String]("messages")
     def tags = column[String]("tags")
     def * = (id, topic, data, ownerId, date, helperId, messages, tags).shaped <> (parseRow, writeRow)
   }
 }
+
+
+case class Question(
+  id: Int,
+  topic: String,
+  data: String,
+  ownerId: Int,
+  date: Long,
+  helperId: Int,
+  tags: List[DocumentTag])
+
 case class Message(
-  id: Long,
   data: String,
   date: Long,
   sessionId: Int,
   ownerId: Int)
+
+case class SimpleMessage(message: String)
