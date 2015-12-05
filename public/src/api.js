@@ -76,7 +76,7 @@
 		}];
 		
 		if(isMock) {
-			onSuccess(sessios);
+			onSuccess(sessions);
 		}else {
 			doRequest("GET", sessionUrl, "json", onSuccess, onError);
 		}

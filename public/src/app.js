@@ -1,3 +1,9 @@
+var isMock_ = true;
+
+function defaultError() {
+    alert("An error happened");
+}
+
 var Header = React.createClass({
     render: function () {
         return (
@@ -131,7 +137,7 @@ var DocumentView = React.createClass({
 
     render: function() {
         return (
-        <div className="card blue-grey darken-1" onClick={this.extendView()}>
+        <div className="card blue-grey darken-1" onClick={this.extendView}>
             <div className="card-content white-text">
                 <span className="card-title">{this.state.documentData.title}</span>
                 <p>{this.state.documentData.url}</p>
@@ -152,15 +158,18 @@ var DocumentView = React.createClass({
 });
 
 var ContentTaggingOverview = React.createClass({
-
-    getInitialState: function () {
-        var documents = getDocuments();
-
-        console.log(documents);
-
+    getInitialState: function() {
         return {
-            documents: documents
+            documents: {data: []}
         }
+    },
+
+    componentWillMount: function() {
+        var self = this;
+        getDocuments(isMock_, "de", function (documents) {
+            console.log("Sucka nahui", documents);
+            self.setState({documents: documents});
+        }, defaultError);
     },
 
     getDocumentsCards: function () {
@@ -186,9 +195,16 @@ var ChatMessage = React.createClass({
         stateData.owner     = this.props.owner;
         stateData.data      = this.props.data;
         stateData.date      = this.props.date;
-        stateData.owner     = getUser(stateData.owner);
+        stateData.owner     = {avatarUrl:"", name: "", role:""};
 
         return stateData;
+    },
+
+    componentWillMount: function() {
+        var self = this;
+        getUser(isMock_, this.props.owner, function(padawan) {
+            self.setState({owner: padawan});
+        }, defaultError);
     },
 
     render: function () {
@@ -210,19 +226,19 @@ var ChatRoom = React.createClass({
         };
     },
 
-    getInitialState: function () {
-        var messagesData = getSession(this.props.chatId);
-
-        messagesData.messageValue = "";
-
-        return messagesData;
+    componentWillMount: function(messageData) {
+        var self = this;
+        getSession(isMock_, this.props.chatId, function(sessionObj){
+            sessionObj.messageValue = "";
+            self.setState(sessionObj);
+        }, defaultError);
     },
 
     getChatMessages: function () {
         var chatroomData = [];
 
         this.state.messages.forEach(function (message) {
-            chatroomData.push(<ChatMessage owner={message.owner} data={message.data} date={message.date} />)
+            chatroomData.push(<ChatMessage owner={message.ownerId} data={message.data} date={message.date} />)
         }, this);
 
         return chatroomData;
@@ -269,17 +285,23 @@ var Question = React.createClass({
         }
     },
 
-    getInitialState: function() {
-        var stateData = { }, sessionInfo = getSession(this.props.id);
+    componentWillMount: function () {
+        var self = this;
+        
+        getSession(isMock_, this.props.id, function (sessionInfo) {
+            var stateData = {};
+            stateData.owner     = sessionInfo.owner;
+            stateData.data      = sessionInfo.data;
+            stateData.date      = sessionInfo.date;
+            stateData.topic     = sessionInfo.topic;
+            stateData.sessionId = sessionInfo.sessionId;
 
-        stateData.owner     = sessionInfo.owner;
-        stateData.data      = sessionInfo.data;
-        stateData.date      = sessionInfo.date;
-        stateData.owner     = getUser(stateData.owner);
-        stateData.topic     = sessionInfo.topic;
-        stateData.sessionId = sessionInfo.sessionId
+            getUser(isMock_, sessionInfo.owner, function (userData) {
+                stateData.owner = userData;
+            }, defaultError);
 
-        return stateData;
+            self.setState(stateData);
+        }, defaultError);
     },
 
     openChat: function() {
@@ -305,7 +327,7 @@ var QuestionsOverview = React.createClass({
 var Content = React.createClass({
     getDefaultProps: function() {
         return {
-            active: <QuestionsOverview chatId="1"/>
+            active: <ContentTaggingOverview chatId="1"/>
         }
     },
 
