@@ -1,3 +1,14 @@
+	var protocol = "http://";
+	var host = "10.32.51.186";
+	var port = "4000";
+	var application = "test";
+
+	var apiUrl = protocol + host + ":" + port + "/" + application;
+
+	var sessionUrl = apiUrl + "/" + "sessions";
+	var documentsUrl = apiUrl + "/" + "documents";
+	var documentsTagsUrl = documentsUrl + "/" + "tags";
+	
 	function getSession(id) {
 		var sessionObj = {
 			'topic' : 'the holy doge',
@@ -26,29 +37,89 @@
 		return sessionObj;
 	};
 	
-	function getHelper(id) {
-		var helper = {
-			'avatarUrl' : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
-			'name' : 'Ron Romba',
-			'role' : 'HELPER'
-		};
-		return helper;
-	};
+	function getSessions(language) {
+		var sessions = [{
+			'topic' : 'toilette',
+			'data' : 'Can someone tell me where the toilette is?',
+			'owner' : 6,
+			'date' : 1449317640,
+			'sessionId' : 20
+		},{
+			'topic' : 'Body',
+			'data' : 'Can anyone tell me whats happening to my body?',
+			'owner' : 5,
+			'date' : 1449317640,
+			'sessionId' : 49
+		},{
+			'topic' : 'Stuffs',
+			'data' : 'There is a lot of freaky stuff goin on, right?',
+			'owner' : 2,
+			'date' : 1449317640,
+			'sessionId' : 79
+		},{
+			'topic' : 'Test Topic',
+			'data' : 'I need to test this toic, who could join me with this?',
+			'owner' : 9,
+			'date' : 1449317640,
+			'sessionId' : 75
+		},{
+			'topic' : 'the holy doge',
+			'data' : 'How can I discuss gracefully about the holy doge?',
+			'owner' : 1,
+			'date' : 1449317640,
+			'sessionId' : 90
+		}];
+	}
 	
-	function getPadawan(id) {
+	function getUser(id) {
 		var padawan = {
 			'avatarUrl' : 'http://s3.amazonaws.com/37assets/svn/765-default-avatar.png',
 			'name' : 'Ron Romba',
 			'role' : 'HELPER'
 		};
-		return padawan;
-	};
-
-	function postMessage(sessionId, message) {
-		
+		return padawan;		
 	};
 	
-	function getDocuments(language) {
+	function createSession(language, ownerId, question, topic, onSuccess, onError) {
+		sessionUrl + "?lang=" + language + "&ownerId=" + ownerId;
+		
+		var postData = {
+			'data' : question,
+			'topic' : topic
+		};
+				 	
+		doRequest("POST", sessionUrl , "json", postData, onSuccess, onError);
+	}
+
+	function postMessage(sessionId, message) {
+		var sessionObj = {
+			'topic' : 'the holy doge',
+			'data' : 'How can I discuss gracefully about the holy doge?',
+			'owner' : 2,
+			'date' : 1449317640,
+			'helper' : 4,
+			'messages' : [
+				{
+					'owner' : 4,
+					'data' : 'hey there, Im here to help you',
+					'date' : 1449317640 	
+				},
+				{
+					'owner' : 2,
+					'data' : 'cool stuff buddy, I really like you',
+					'date' : 1449317640 	
+				},
+				{
+					'owner' : 4,
+					'data' : 'stuff and thanks',
+					'date' : 1449317640 	
+				},
+			]
+		};
+		return sessionId;
+	};
+	
+	function getDocuments(language, onSuccess, onError) {
 		var documents = {
 			'data' : [{
 				'title' : "this is a title",
@@ -81,6 +152,10 @@
 		};
 		return documents;
 	};
+	
+	function updateDocument(id, tags, onSuccess, onError) {
+		
+	}
 	
 	function doRequest(requestMethod, requestUrl, requestDataType, onSuccess, onError) {
 		doRequest(requestMethod, requestUrl, undefined, requestDataType, onSuccess, onError);
