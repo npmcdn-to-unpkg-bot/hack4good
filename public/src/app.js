@@ -1,3 +1,37 @@
+function getDocuments(language) {
+    var documents = {
+        'data' : [{
+            'title' : "this is a title",
+            'tags' : [{
+                'lang' : 'de',
+                'name' : 'language',
+                'date' : 1449317640
+            }],
+            'url' : 'http://refugee-board.de/',
+            'date' : 1449317640
+        }, {
+            'title' : "this is another title",
+            'tags' : [{
+                'lang' : 'en',
+                'name' : 'language',
+                'date' : 1449317640
+            }],
+            'url' : 'http://refugee-board.de/',
+            'date' : 1449317640
+        },{
+            'title' : "this is a title",
+            'tags' : [{
+                'lang' : 'de',
+                'name' : 'language',
+                'date' : 1449317640
+            }],
+            'url' : 'http://refugee-board.de/',
+            'date' : 1449317640
+        }]
+    };
+    return documents;
+};
+
 var Header = React.createClass({
     render: function () {
         return (
@@ -57,8 +91,7 @@ var LanguageTable = React.createClass({
     }
 });
 
-var Content = React.createClass({
-
+var RoleChooser = React.createClass({
     getDefaultProps: function() {
         return {
             roles: {
@@ -95,8 +128,11 @@ var Content = React.createClass({
         this.setState({role: this.props.refugee});
     },
 
-    setLanguages: function () {
-
+    setLanguages: function (speaking, learning) {
+        this.setState({
+            learning: learning,
+            speaking: speaking
+        });
     },
 
     render: function() {
@@ -104,9 +140,73 @@ var Content = React.createClass({
             <div>
                 <h2>Are you a <a href="#" onClick={this.setHelper}>Helper</a> or <a href="#" onClick={this.setRefugee}> Refugee</a></h2>
 
-                <LanguageTable onClick={this.setLanguages}/>
+                <LanguageTable />
+
+                <button className=""></button>
             </div>
         );
+    }
+});
+
+var DocumentView = React.createClass({
+    getInitialState: function () {
+        return this.props;
+    },
+
+    onClick: function () {
+        console.log("Clickt on doc"+ this.state.title);
+    },
+
+    render: function() {
+        return (
+        <div className="card blue-grey darken-1">
+            <div className="card-content white-text">
+                <span className="card-title">{this.state.title}</span>
+                <p>{this.state.url}</p>
+            </div>
+            <div className="card-action">
+                <a href="#">add tags</a>
+            </div>
+        </div>);
+    }
+});
+
+var ContentTaggingOverview = React.createClass({
+
+    getInitialState: function () {
+        var documents = getDocuments();
+
+        console.log(documents);
+
+        return {
+            documents: documents
+        }
+    },
+
+    getDocumentsCards: function () {
+        var cards = [], i = 0;
+
+        this.state.documents.data.forEach(function (document) {
+            cards[i++] = (<div className="row"><DocumentView title={document.title} url={document.url} tags={document.tags}/></div>);
+        }, this);
+
+        return cards;
+    },
+
+    render: function () {
+        return <div>{this.getDocumentsCards()}</div>;
+    }
+});
+
+var Content = React.createClass({
+    getDefaultProps: function() {
+        return {
+            active: <ContentTaggingOverview />
+        }
+    },
+
+    render: function() {
+        return this.props.active;
     }
 });
 
