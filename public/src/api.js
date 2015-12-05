@@ -1,7 +1,7 @@
 	var protocol = "http://";
 	var host = "10.32.51.186";
 	var port = "4000";
-	var application = "test";
+	var application = "rest";
 
 	var apiUrl = protocol + host + ":" + port + "/" + application;
 
@@ -157,6 +157,17 @@
 		
 	}
 	
+	function createDocument(title, tags, docUrl, fileType, onSuccess, onError) {
+		var url = documentsUrl + "?title=" + title + "&url=" + encodeURIComponent(docUrl) + "&filetype=" + fileType;
+		var tagString = "&tags=";
+		
+		for (var i=0; i < tags.length; i++) {
+			tagString = tagString + tags[i];  
+		}; 
+		
+		doRequest("POST", url, "json", onSuccess, onError);
+	}
+	
 	function doRequest(requestMethod, requestUrl, requestDataType, onSuccess, onError) {
 		doRequest(requestMethod, requestUrl, undefined, requestDataType, onSuccess, onError);
 	}
@@ -178,7 +189,7 @@
 		} 
 
 		request.done(onSuccess);
-
+		
 		request.fail(onError); 
 		
 		request.always(function() {
