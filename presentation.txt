@@ -1,0 +1,24 @@
+What's the Problem?:
+  - Finding solutions to one's daily problems is often impersonal and tedious (image of list of results on google)
+  - Big groups are often hard to navigate
+  
+  - how can we improve on the process of finding help and distributing links and information which helped in answering
+    questions ?
+  - how do we connect people that want to quickly help (in between meetings)
+
+What's our idea?
+  - Platform for questions in native languages
+  - Connecting questionee and 'experts' more personally
+  - Helper 'owns' a question and is in direct contact
+
+What do we try to solve it? (demo designs and FE????)
+  - Pool of questions for a given language
+  - Document-database which can be used to search docs for help, or even automatically adds them to a conversation
+  - People can join and look for open questions in their language
+  - People input documents and tag them so they can be used within the system
+  - Growing set of tags for documents (types, language, topic, problem etc...)
+
+Where do we see this going?
+  - More than 2 people can join question
+  - rating and ranking for documents and answers
+  - user login and general savety
