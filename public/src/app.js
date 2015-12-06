@@ -1,5 +1,5 @@
 var isMock_ = true;
-var content;
+var role;
 
 function defaultError() {
     alert("An error happened");
@@ -71,7 +71,7 @@ var RoleChooser = React.createClass({
                 helper: 1,
                 refugee: 0
             },
-            role: null
+            role: 0
         }
     },
 
@@ -93,12 +93,14 @@ var RoleChooser = React.createClass({
 
     setHelper: function () {
         console.log("helper");
-        this.setState({role: this.props.helper});
+        this.setState({role: 1});
+        role = 1;
     },
 
     setRefugee: function() {
         console.log("refugee");
-        this.setState({role: this.props.refugee});
+        this.setState({role: 0});
+        role = 0;
     },
 
     setLanguages: function (speaking, learning) {
@@ -108,14 +110,22 @@ var RoleChooser = React.createClass({
         });
     },
 
+    getNext: function () {
+        console.log("You are", this.state.role);
+        if (this.state.role == this.props.roles.refugee)
+            return "?view=ask";
+        else
+            return "?view=documents"
+    },
+
     render: function() {
         return (
             <div>
                 <h2>Are you a <a href="#" onClick={this.setHelper}>Helper</a> or <a href="#" onClick={this.setRefugee}> Refugee</a></h2>
 
-                <LanguageTable />
-
-                <button className=""></button>
+                <a href={this.getNext()}>
+                    <LanguageTable />
+                </a>
             </div>
         );
     }
@@ -266,15 +276,27 @@ var ChatRoom = React.createClass({
         }
     },
 
+    getEndAction: function () {
+        if (role == 0) {
+            return "?view=history"
+        } else {
+            return "?view=documents"
+        }
+    },
+
     render: function() {
         return (<div>
+            <a className="btn waves-effect waves-light red darken-3"
+               type="submit" name="action" href="?view=history">End
+                <i className="material-icons right">close</i>
+            </a>
             <ul className="collection">{this.getChatMessages()}</ul>
             <div>
                 <input type="text" ref="messageValue" onChange={this.handleInput} placeholder="Your Message"/>
-                <button className="btn waves-effect waves-light red darken-3"
-                        type="submit" name="action" onClick={this.sendMessage}>Submit
+                <a className="btn waves-effect waves-light blue darken-3"
+                        type="submit" name="action" onClick={this.sendMessage}>Send
                     <i className="material-icons right">send</i>
-                </button>
+                </a>
             </div>
         </div>);
     }
@@ -307,7 +329,7 @@ var Question = React.createClass({
     },
 
     openChat: function() {
-        Content.changeState({active: <ChatRoom chatId={this.state.sessionId} />});
+        //Content.changeState({active: <ChatRoom chatId={this.state.sessionId} />});
     },
 
     render: function () {
@@ -326,7 +348,7 @@ var QuestionsOverview = React.createClass({
         getSessions(isMock_, "en", function (sessions) {
             var questions = [];
             sessions.forEach(function (question) {
-                questions.push(<Question id={question.sessionId}/>);
+                questions.push(<a href="?view=chat"><Question id={question.sessionId}/></a>);
             });
             self.setState({questions:questions});
         }, defaultError);
@@ -342,17 +364,17 @@ var AskQuestion = React.createClass({
             question = $(ReactDOM.findDOMNode(this.refs.question));
         createSession(true, "en", 1, question.val(), topic.val(), function (sessionId) {
             console.log("asking questing", topic.val(), question.val(), sessionId);
-            content.setState({active: <ChatRoom chatId={sessionId} />})
+
         }, defaultError);
     },
     render: function () {
         return <div>
             <input type="text" placeholder="Topic" ref="topic"/>
             <input type="text" placeholder="Question" ref="question" />
-            <button className="btn waves-effect waves-light red darken-3"
-                    type="submit" name="action" onClick={this.createSession}>Ask
+            <a className="btn waves-effect waves-light red darken-3"
+                    type="submit" name="action" onClick={this.createSession} href="?view=chat">Ask
                 <i className="material-icons right">send</i>
-            </button>
+            </a>
         </div>;
     }
 });
@@ -413,17 +435,46 @@ var Footer = React.createClass({
     }
 });
 
+var Router = window.ReactRouter;
+var Locations = React.createFactory(Router.Locations);
+var Location = React.createFactory(Router.Location);
+
+console.log("Location", Locations, Location);
+
 var App = React.createClass({
+    getActive: function () {
+        var viewData = this.getViewParameter("view");
+        var view = <RoleChooser />;
+
+        switch (viewData) {
+            case "role": return view;
+            case "ask": return <AskQuestion />;
+            case "history": return <QuestionHistory />;
+            case "chat": return <ChatRoom />
+            case "questions":
+            case "documents": return <div><QuestionsOverview /><hr /><ContentTaggingOverview /></div>
+        }
+    },
+
+    getViewParameter: function(val) {
+        var result = "Not found",
+            tmp = [];
+        location.search
+            .substr(1)
+            .split("&")
+            .forEach(function (item) {
+                tmp = item.split("=");
+                if (tmp[0] === val) result = decodeURIComponent(tmp[1]);
+            });
+        return result;
+    },
 
     render: function () {
         $('.button-collapse').sideNav();
-        return (
-            <div>
-                <Header  />
-                <Content />
-                <Footer  />
-            </div>)
+        return <div><Header /><Content active={this.getActive()}/><Footer /></div>;
     }
 });
 
-ReactDOM.render(<App/>, document.getElementById('app'));
+console.log("Router", window.ReactRouter);
+
+ReactDOM.render(React.createElement(App), document.getElementById('app'));
