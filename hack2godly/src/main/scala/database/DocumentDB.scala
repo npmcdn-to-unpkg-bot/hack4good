@@ -181,5 +181,3 @@ case class Message(
   sessionId: Int,
   ownerId: Int)
 
-case class SimpleMessage(message: String)
-case class SimpleTag(name: String, language: String)

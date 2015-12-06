@@ -4,6 +4,7 @@ import java.security.InvalidParameterException
 
 import database._
 import org.joda.time.DateTime
+import server.Protocol.{Tags, SimpleMessage, SimpleTag}
 
 import server.WebApp.Arguments
 import unfiltered.response.ResponseString
@@ -128,8 +129,7 @@ object Main extends WebApp[Args] {
           sq <- sessions if sq.id === sessionId.toInt
         } yield sq.messages
         db.run(updateQ.update(write(oldMessages ++ Seq(newMessage))))
-        Thread.sleep(1000)
-        ResponseString("updated")
+        ResponseString(s"Added message for session $sessionId")
 
       // Insert a new document
       case req@POST(Path(Seg(base :: "documents" :: Nil)) & Params(params)) =>
@@ -189,22 +189,31 @@ object Main extends WebApp[Args] {
         ResponseString("Inserted Document")
 
         // Add tags to a document
-      case req@POST(Path(Seg(base :: "documents" :: docID :: "tags" :: Nil)) & Params(params)) =>
-        ResponseString("dummy")
-
+      case req@POST(Path(Seg(base :: "documents" :: docId :: "tags" :: Nil)) & Params(params)) =>
+        val bodyString = Body.toString()
+        val newTags = read[Tags](bodyString).tags
+        addTagsToDocument(docId.toInt, newTags)
+        ResponseString(s"Added ${newTags.length} new tags to document with id $docId")
 
         // Return all untagged documents
       case req@GET(Path(Seg(base :: "documents" :: Nil))) =>
         ResponseString(write(getUntaggedDocuments))
     }
 
-
     def addTagsToDocument(docId: Int, tags: Seq[DocumentTag]) = {
-
+      val oldTags = getDocumentTags(docId)
+      val newTags = oldTags ++ tags
+      val q = for(doc <- docs if doc.id === docId) yield (doc.tags, doc.tagged)
+      db.run(q.update(write(newTags), true))
+      println(s"Updated tags for document with id $docId")
     }
 
     def getDocumentTags(docId: Int) = {
-
+      val q = for(doc <- docs if doc.id === docId) yield doc.tags
+      val a = q.result
+      val f = db.run(a)
+      read[Seq[DocumentTag]](Await.result(f, DefaultTimeout).headOption
+          .getOrElse(throw new IllegalArgumentException(s"No document with id $docId found")))
     }
 
     def getUntaggedDocuments(): Seq[Document] = {
