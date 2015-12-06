@@ -4,7 +4,7 @@ import java.security.InvalidParameterException
 
 import database._
 import org.joda.time.DateTime
-import server.Protocol.{QuestionPost, AddTagsPost, MessagePost, TagPost}
+import server.Protocol._
 
 import server.WebApp.Arguments
 import unfiltered.response.ResponseString
@@ -72,7 +72,6 @@ object Main extends WebApp[Args] {
       docs.schema.create,
       sessions.schema.create,
       tags.schema.create,
-      docs += Document(0, "content", "test", "tags"),
       sessions ++= sess.toSeq,
       sessions ++= sessNoHelp.toSeq
     )
@@ -223,7 +222,7 @@ object Main extends WebApp[Args] {
 
         val tagged = tagsForSession.length > 1
 
-        println(s"writing document to db: title -> $title, url -> $url, filetype -> $filetype in language $language")
+        println(s"writing document to db: title -> $title, url -> $url, filetype -> $filetype")
         val insert = DBIO.seq(
          docs += Document(-1, url, filetype, write(tagsForSession), tagged)
         )
@@ -239,22 +238,81 @@ object Main extends WebApp[Args] {
 
       // Return all untagged documents
       case req@GET(Path(Seg(base :: "documents" :: Nil))) =>
+        println("getting all untagged documents")
         ResponseString(write(getUntaggedDocuments))
 
+      //get all docs for one session
+      case req@GET(Path(Seg(base :: "sessions" :: sessionId :: "documents" :: Nil)) & Params(params)) =>
+        println(s"getting all documents for session $sessionId")
+        ResponseString(write(getDocumentsForSession(sessionId.toInt)))
 
-//      // get all docs for one session
-//      case req@GET(Path(Seg(base :: "sessoin" :: sessionId :: "documents" :: Nil)) & Params(params)) =>
-//
-//
-//      // get all documents for given language
-//      case req@GET
+      // get all documents for given language
+      case req@GET(Path(Seg(base :: "documents" :: "languages" :: Nil)) & Params(params)) =>
+        println(s"getting all documents for a language")
+        val paramsMap = params.toMap[String, Seq[String]]
+        val language = paramsMap("language").head
+        println(s"language: $language")
+        ResponseString(write(getDocumentsForLanguage(language)))
+
 
     }
 
+    val alphaRegex = """[a-zA-Z]"""
+    val boundRegex = """\b"""
     // parses through the tokenized text and tries to find tags from them
-//    def getDocumentsForSession(sessionId: Int): Seq[Document] = {
-//
-//    }
+    def getDocumentsForSession(sessionId: Int): Seq[SendableDocument] = {
+      val ts = getAllTags
+      // tokenize all messages and search for tags
+      val messageTokens = {
+        val q = for (s <- sessions if s.id === sessionId) yield s.messages
+        val a = q.result
+        val f = db.run(a)
+        val messages = Await.result(f, DefaultTimeout).headOption.map{ read[Seq[Message]](_)}.getOrElse(Seq())
+        messages.flatMap{ case m =>
+          val data = m.data
+            data.split(boundRegex).map{_.trim.toLowerCase}.filter{_.matches(alphaRegex)}.toSet
+        }.toSet
+      }
+
+      val relevantTags = ts.filter{ case t => messageTokens.contains(t.name)}
+      relevantTags.flatMap{ getDocumentsForTag(_)}
+    }
+
+
+    def getAllTags(): Seq[DocumentTag] = {
+      println("getting all tags")
+      val q = for (t <- tags) yield (t.id, t.lang, t.name, t.date)
+      val a = q.result
+      val f = db.run(a)
+      Await.result(f, DefaultTimeout).map{ case (id, lang, name, date) => DocumentTag(id, lang, name, date)}
+    }
+
+    def getDocumentsForLanguage(language: String): Seq[SendableDocument] = {
+      println(s"==> ")
+      getAllSendableDocs.filter{_.tags.exists{ _.lang == language}}
+    }
+
+    def getDocumentsForTag(tag: DocumentTag): Seq[SendableDocument] = {
+      val lang = tag.lang
+      val name = tag.name
+      println(s"getting all documents for tag $name")
+      getAllSendableDocs.filter{_.tags.exists{_.name == name}}
+    }
+
+    def getAllSendableDocs() = {
+      docsToSendableDocs(getAllDocs)
+    }
+
+    def docsToSendableDocs(docs: Seq[Document]) = {
+      docs.map{doc => SendableDocument(doc.id, doc.url, doc.typ, read[Seq[DocumentTag]](doc.tags), doc.tagged)}
+    }
+
+    def getAllDocs() = {
+      val q = for (doc <- docs ) yield (doc.id, doc.url, doc.typ, doc.tags, doc.tagged)
+      val a = q.result
+      val f = db.run(a)
+      Await.result(f, DefaultTimeout).map{ case (id, url, typ, tags, tagged) => Document(id, url, typ, tags, tagged)}
+    }
 
     def addTagsToDocument(docId: Int, tags: Seq[DocumentTag]) = {
       val oldTags = getDocumentTags(docId)
@@ -272,11 +330,16 @@ object Main extends WebApp[Args] {
           .getOrElse(throw new IllegalArgumentException(s"No document with id $docId found")))
     }
 
-    def getUntaggedDocuments(): Seq[Document] = {
+    def getUntaggedDocuments(): Seq[SendableDocument] = {
+      println("getting untagged documents")
       val q = for(doc <- docs if doc.tagged === false) yield (doc.id, doc.url, doc.typ, doc.tags)
       val a = q.result
       val f = db.run(a)
-      Await.result(f, DefaultTimeout).map{ case (id, url, typ, tags) => Document(id, url, typ, tags)}
+      Await.result(f, DefaultTimeout)
+        .map{ case (id, url, typ, taggos) =>
+        println(taggos)
+        SendableDocument(id, url, typ, read[Seq[DocumentTag]](taggos), false)
+      }
     }
 
     def addTagsAndReturn(inputTags: Seq[TagPost]): Seq[DocumentTag] = {

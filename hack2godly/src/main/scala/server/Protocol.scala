@@ -12,4 +12,5 @@ object Protocol {
   case class TagPost(name: String, language: String)
   case class AddTagsPost(tags: Seq[DocumentTag])
   case class QuestionPost(data: String, topic: String)
+  case class SendableDocument(id: Int, url: String, typ: String, tags: Seq[DocumentTag], tagged: Boolean)
 }
