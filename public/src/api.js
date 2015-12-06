@@ -99,7 +99,7 @@
 	};
 	
 	function createSession(isMock, language, ownerId, question, topic, onSuccess, onError) {
-		sessionUrl + "?lang=" + language + "&ownerId=" + ownerId;
+		var url = sessionUrl + "?lang=" + language + "&ownerId=" + ownerId;
 		
 		var postData = {
 			'data' : question,

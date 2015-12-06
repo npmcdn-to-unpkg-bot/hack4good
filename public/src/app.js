@@ -1,4 +1,5 @@
 var isMock_ = true;
+var content;
 
 function defaultError() {
     alert("An error happened");
@@ -268,7 +269,7 @@ var ChatRoom = React.createClass({
         return (<div>
             <ul className="collection">{this.getChatMessages()}</ul>
             <div>
-                <input type="text" ref="messageValue" onChange={this.handleInput}/>
+                <input type="text" ref="messageValue" onChange={this.handleInput} />
                 <button className="btn waves-effect waves-light red darken-3"
                         type="submit" name="action" onClick={this.sendMessage}>Submit
                     <i className="material-icons right">send</i>
@@ -324,10 +325,18 @@ var QuestionsOverview = React.createClass({
     }
 });
 
+var AskQuestion = React.createClass({
+    render: function () {
+        return <div>
+            <input type="text" />
+        </div>;
+    }
+});
+
 var Content = React.createClass({
     getDefaultProps: function() {
         return {
-            active: <ContentTaggingOverview chatId="1"/>
+            active: <ChatRoom chatId="1" />
         }
     },
 
@@ -364,9 +373,9 @@ var App = React.createClass({
         $('.button-collapse').sideNav();
         return (
             <div>
-                <Header/>
-                <Content/>
-                <Footer/>
+                <Header  />
+                <Content />
+                <Footer  />
             </div>)
     }
 });
