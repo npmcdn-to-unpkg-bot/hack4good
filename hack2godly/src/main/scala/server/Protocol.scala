@@ -8,7 +8,8 @@ import database.DocumentTag
  * Contains classes which are just for communication to fulfil the API
  */
 object Protocol {
-  case class SimpleMessage(message: String)
-  case class SimpleTag(name: String, language: String)
-  case class Tags(tags: Seq[DocumentTag])
+  case class MessagePost(message: String)
+  case class TagPost(name: String, language: String)
+  case class AddTagsPost(tags: Seq[DocumentTag])
+  case class QuestionPost(data: String, topic: String)
 }

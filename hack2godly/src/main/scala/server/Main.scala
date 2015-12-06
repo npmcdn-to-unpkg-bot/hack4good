@@ -4,7 +4,7 @@ import java.security.InvalidParameterException
 
 import database._
 import org.joda.time.DateTime
-import server.Protocol.{Tags, SimpleMessage, SimpleTag}
+import server.Protocol.{QuestionPost, AddTagsPost, MessagePost, TagPost}
 
 import server.WebApp.Arguments
 import unfiltered.response.ResponseString
@@ -86,7 +86,38 @@ object Main extends WebApp[Args] {
 
     val base = "rest"
 
+    def postNewQuestion(ownerId: Int, lang: String, data: String, topic: String): Int = {
+      val languageTag = {
+        val q = for (tag <- tags if tag.name === lang && tag.lang === lang) yield (tag.id, tag.date)
+        val a = q.result
+        val f = db.run(a)
+        Await.result(f, DefaultTimeout).headOption match {
+          case Some((id, date)) => Seq(DocumentTag(id, lang, lang, date))
+          case None => addTagsAndReturn(Seq(TagPost(lang, lang)))
+        }
+      }
+
+      val sessionId = {
+        val q =  (sessions returning sessions.map(_.id)) +=
+          QuestionSession(-1, topic, data, ownerId, new DateTime().getMillis, -1, List(), languageTag.toList)
+        val f =db.run(q)
+        Await.result(f, DefaultTimeout)
+      }
+      sessionId
+    }
+
     def intent = {
+
+      // Post a new question
+      case req@POST(Path(Seg(base :: "sessions" :: Nil)) & Params(params)) =>
+        val paramsMap = params.toMap[String, Seq[String]]
+        val bodyString = Body.string(req)
+        val ownerId = paramsMap("ownerId").head.toInt
+        val lang = paramsMap("language").head.toUpperCase
+        val usedLang = if(Languages.AllLangs.contains(lang)) lang else Languages.UNDEFINED
+        val question = read[QuestionPost](bodyString)
+        ResponseString(postNewQuestion(ownerId, lang, question.data, question.topic).toString)
+
       // Get all information for one session (including all messages)
       case req@GET(Path(Seg(base :: "sessions" :: sessionId :: Nil)) & Params(params)) =>
         val q = for {
@@ -123,7 +154,7 @@ object Main extends WebApp[Args] {
         val sess = Await.result(f, Duration(10, duration.SECONDS)).head
         val oldMessages = read[Seq[Message]](sess._1)
         val bodyString = Body.string(req)
-        val newMessageContent = read[SimpleMessage](bodyString)
+        val newMessageContent = read[MessagePost](bodyString)
         val newMessage = Message(newMessageContent.message, new DateTime().getMillis, sessionId.toInt, sess._2)
         val updateQ = for {
           sq <- sessions if sq.id === sessionId.toInt
@@ -180,7 +211,7 @@ object Main extends WebApp[Args] {
             FileTypes.WEBPAGE
           }
         }
-        addTagsAndReturn(paramsMap("tags").headOption.map{ t => read[Seq[SimpleTag]](t) }.getOrElse(Seq())) // maybe never used
+        addTagsAndReturn(paramsMap("tags").headOption.map{ t => read[Seq[TagPost]](t) }.getOrElse(Seq())) // maybe never used
 
         val insert = DBIO.seq(
          docs += Document(-1, url, filetype, s"""[{"name":"$language","language":"$language"}]""")
@@ -190,14 +221,15 @@ object Main extends WebApp[Args] {
 
         // Add tags to a document
       case req@POST(Path(Seg(base :: "documents" :: docId :: "tags" :: Nil)) & Params(params)) =>
-        val bodyString = Body.toString()
-        val newTags = read[Tags](bodyString).tags
+        val bodyString = Body.string(req)
+        val newTags = read[AddTagsPost](bodyString).tags
         addTagsToDocument(docId.toInt, newTags)
         ResponseString(s"Added ${newTags.length} new tags to document with id $docId")
 
         // Return all untagged documents
       case req@GET(Path(Seg(base :: "documents" :: Nil))) =>
         ResponseString(write(getUntaggedDocuments))
+
     }
 
     def addTagsToDocument(docId: Int, tags: Seq[DocumentTag]) = {
@@ -223,7 +255,7 @@ object Main extends WebApp[Args] {
       Await.result(f, DefaultTimeout).map{ case (id, url, typ, tags) => Document(id, url, typ, tags)}
     }
 
-    def addTagsAndReturn(inputTags: Seq[SimpleTag]): Seq[DocumentTag] = {
+    def addTagsAndReturn(inputTags: Seq[TagPost]): Seq[DocumentTag] = {
       // first add all missing tags
       for (simpleTag <- inputTags) {
         val q = for {
