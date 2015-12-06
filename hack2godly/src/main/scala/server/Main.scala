@@ -151,8 +151,9 @@ object Main extends WebApp[Args] {
         } yield (sq.messages, sq.ownerId)
         val a = q.result
         val f: Future[Seq[(String, Int)]] = db.run(a)
-        val sess = Await.result(f, Duration(10, duration.SECONDS)).head
+        val sess = Await.result(f, Duration(10, duration.SECONDS)).headOption.getOrElse(throw new IllegalArgumentException(s"No session with id $sessionId found"))
         val oldMessages = read[Seq[Message]](sess._1)
+        println(s"found ${oldMessages.length} messages for session $sessionId")
         val bodyString = Body.string(req)
         val newMessageContent = read[MessagePost](bodyString)
         val newMessage = Message(newMessageContent.message, new DateTime().getMillis, sessionId.toInt, sess._2)
@@ -253,8 +254,6 @@ object Main extends WebApp[Args] {
         val language = paramsMap("language").head
         println(s"language: $language")
         ResponseString(write(getDocumentsForLanguage(language)))
-
-
     }
 
     val alphaRegex = """[a-zA-Z]"""
@@ -278,7 +277,6 @@ object Main extends WebApp[Args] {
       relevantTags.flatMap{ getDocumentsForTag(_)}
     }
 
-
     def getAllTags(): Seq[DocumentTag] = {
       println("getting all tags")
       val q = for (t <- tags) yield (t.id, t.lang, t.name, t.date)
@@ -289,12 +287,12 @@ object Main extends WebApp[Args] {
 
     def getDocumentsForLanguage(language: String): Seq[SendableDocument] = {
       println(s"==> ")
-      getAllSendableDocs.filter{_.tags.exists{ _.lang == language}}
+      getAllSendableDocs.filter{_.tags.exists{ _.lang == language.toLowerCase}}
     }
 
     def getDocumentsForTag(tag: DocumentTag): Seq[SendableDocument] = {
-      val lang = tag.lang
-      val name = tag.name
+      val lang = tag.lang.toLowerCase
+      val name = tag.name.toLowerCase
       println(s"getting all documents for tag $name")
       getAllSendableDocs.filter{_.tags.exists{_.name == name}}
     }
@@ -346,7 +344,7 @@ object Main extends WebApp[Args] {
       // first add all missing tags
       for (simpleTag <- inputTags) {
         val q = for {
-          t <- tags if t.name === simpleTag.name && t.lang === simpleTag.language
+          t <- tags if t.name === simpleTag.name.toLowerCase && t.lang === simpleTag.language.toLowerCase
         } yield t.id
 
         val a = q.result
@@ -355,7 +353,7 @@ object Main extends WebApp[Args] {
         //Add tag, if not in DB
         if (res.length == 0) {
           val insert = DBIO.seq(
-            tags += DocumentTag(-1, simpleTag.name, simpleTag.language, new DateTime().getMillis)
+            tags += DocumentTag(-1, simpleTag.name.toLowerCase, simpleTag.language.toLowerCase, new DateTime().getMillis)
           )
           db.run(insert)
         }
@@ -364,7 +362,8 @@ object Main extends WebApp[Args] {
       // then return them all
       val results = for {
         simpleTag <- inputTags
-        q = for (t <- tags if t.name === simpleTag.name && t.lang === simpleTag.language) yield (t.id, t.name, t.lang, t.date)
+        q = for (t <- tags if t.name === simpleTag.name.toLowerCase && t.lang === simpleTag.language.toLowerCase)
+          yield (t.id, t.name, t.lang, t.date)
         a = q.result
         f = db.run(a)
       } yield {
