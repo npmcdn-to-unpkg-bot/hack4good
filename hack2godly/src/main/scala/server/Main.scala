@@ -28,6 +28,8 @@ import org.json4s.native.Serialization.{read, write}
 object Main extends WebApp[Args] {
 
   implicit val formats = Serialization.formats(NoTypeHints)
+  val DefaultTimeout = Duration(10, duration.SECONDS)
+
   class ServerApp(args: Arguments) extends unfiltered.filter.Plan {
 
     // the database object for interactions
@@ -186,7 +188,30 @@ object Main extends WebApp[Args] {
         db.run(insert)
         ResponseString("Inserted Document")
 
-//      case req@GET(Path(Seg()))
+        // Add tags to a document
+      case req@POST(Path(Seg(base :: "documents" :: docID :: "tags" :: Nil)) & Params(params)) =>
+        ResponseString("dummy")
+
+
+        // Return all untagged documents
+      case req@GET(Path(Seg(base :: "documents" :: Nil))) =>
+        ResponseString(write(getUntaggedDocuments))
+    }
+
+
+    def addTagsToDocument(docId: Int, tags: Seq[DocumentTag]) = {
+
+    }
+
+    def getDocumentTags(docId: Int) = {
+
+    }
+
+    def getUntaggedDocuments(): Seq[Document] = {
+      val q = for(doc <- docs if doc.tagged === false) yield (doc.id, doc.url, doc.typ, doc.tags)
+      val a = q.result
+      val f = db.run(a)
+      Await.result(f, DefaultTimeout).map{ case (id, url, typ, tags) => Document(id, url, typ, tags)}
     }
 
     def addTagsAndReturn(inputTags: Seq[SimpleTag]): Seq[DocumentTag] = {

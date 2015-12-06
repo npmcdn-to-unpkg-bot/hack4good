@@ -102,7 +102,9 @@ case class Document(
   id: Int,
   url: String,
   typ: String,
-  tags: String)
+  tags: String,
+  tagged: Boolean = false)
+
 
 object DocumentTable {
   val tableName = "docs"
@@ -113,7 +115,8 @@ object DocumentTable {
     def url = column[String]("content") // implicitly TEXT (unlimited)
     def typ = column[String]("fileType")
     def tags = column[String]("tags")
-    def * = (id, url, typ, tags).shaped <> (Document.tupled, Document.unapply)
+    def tagged = column[Boolean]("tagged")
+    def * = (id, url, typ, tags, tagged).shaped <> (Document.tupled, Document.unapply)
   }
 }
 
