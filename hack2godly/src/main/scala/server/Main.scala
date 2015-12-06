@@ -113,7 +113,7 @@ object Main extends WebApp[Args] {
         val paramsMap = params.toMap[String, Seq[String]]
         val bodyString = Body.string(req)
         val ownerId = paramsMap("ownerId").head.toInt
-        val lang = paramsMap("language").head.toUpperCase
+        val lang = paramsMap("language").head.toLowerCase
         val usedLang = if(Languages.AllLangs.contains(lang)) lang else Languages.UNDEFINED
         val question = read[QuestionPost](bodyString)
         ResponseString(postNewQuestion(ownerId, lang, question.data, question.topic).toString)
@@ -146,6 +146,7 @@ object Main extends WebApp[Args] {
 
       // Write new message
       case req@POST(Path(Seg(base :: "sessions" :: sessionId :: Nil)) & Params(params)) =>
+        println(s"Writing new message for session $sessionId")
         val q = for {
           sq <- sessions if sq.id === sessionId.toInt
         } yield (sq.messages, sq.ownerId)
@@ -164,6 +165,7 @@ object Main extends WebApp[Args] {
 
       // Insert a new document
       case req@POST(Path(Seg(base :: "documents" :: Nil)) & Params(params)) =>
+        println("inserting new document")
         val paramsMap = params.toMap[String, Seq[String]]
         val title = paramsMap("title").head
         val url = paramsMap("url").head
@@ -211,26 +213,48 @@ object Main extends WebApp[Args] {
             FileTypes.WEBPAGE
           }
         }
-        addTagsAndReturn(paramsMap("tags").headOption.map{ t => read[Seq[TagPost]](t) }.getOrElse(Seq())) // maybe never used
+        val bodyString = Body.string(req)
 
+        val additionalTags = if (!bodyString.isEmpty) read[Seq[TagPost]](bodyString) else Seq()
+
+        println(s"found ${additionalTags.length} tags in request")
+
+        val tagsForSession = addTagsAndReturn(additionalTags) // maybe never used
+
+        val tagged = tagsForSession.length > 1
+
+        println(s"writing document to db: title -> $title, url -> $url, filetype -> $filetype in language $language")
         val insert = DBIO.seq(
-         docs += Document(-1, url, filetype, s"""[{"name":"$language","language":"$language"}]""")
+         docs += Document(-1, url, filetype, write(tagsForSession), tagged)
         )
         db.run(insert)
         ResponseString("Inserted Document")
 
-        // Add tags to a document
+      // Add tags to a document
       case req@POST(Path(Seg(base :: "documents" :: docId :: "tags" :: Nil)) & Params(params)) =>
         val bodyString = Body.string(req)
         val newTags = read[AddTagsPost](bodyString).tags
         addTagsToDocument(docId.toInt, newTags)
         ResponseString(s"Added ${newTags.length} new tags to document with id $docId")
 
-        // Return all untagged documents
+      // Return all untagged documents
       case req@GET(Path(Seg(base :: "documents" :: Nil))) =>
         ResponseString(write(getUntaggedDocuments))
 
+
+//      // get all docs for one session
+//      case req@GET(Path(Seg(base :: "sessoin" :: sessionId :: "documents" :: Nil)) & Params(params)) =>
+//
+//
+//      // get all documents for given language
+//      case req@GET
+
     }
+
+    // parses through the tokenized text and tries to find tags from them
+//    def getDocumentsForSession(sessionId: Int): Seq[Document] = {
+//
+//    }
 
     def addTagsToDocument(docId: Int, tags: Seq[DocumentTag]) = {
       val oldTags = getDocumentTags(docId)
