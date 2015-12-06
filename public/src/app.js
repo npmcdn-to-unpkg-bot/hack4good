@@ -321,8 +321,18 @@ var Question = React.createClass({
 });
 
 var QuestionsOverview = React.createClass({
+    componentWillMount: function() {
+        var self = this;
+        getSessions(isMock_, "en", function (sessions) {
+            var questions = [];
+            sessions.forEach(function (question) {
+                questions.push(<Question id={question.sessionId}/>);
+            });
+            self.setState({questions:questions});
+        }, defaultError);
+    },
     render: function() {
-        return <ul className="collection"><Question id="3234" /></ul>;
+        return <ul className="collection">{this.state.questions}</ul>;
     }
 });
 
@@ -358,7 +368,20 @@ var QuestionHistory = React.createClass({
 var Content = React.createClass({
     getDefaultProps: function() {
         return {
-            active: <AskQuestion chatId="1" />
+            active: (<div>
+                <hr />
+                <RoleChooser />
+                <hr />
+                <AskQuestion />
+                <hr />
+                <QuestionHistory />
+                <hr />
+                <ChatRoom chatId="1"/>
+                <hr />
+                <QuestionsOverview />
+                <hr />
+                <ContentTaggingOverview />
+            </div>)
         }
     },
 
@@ -391,19 +414,13 @@ var Footer = React.createClass({
 });
 
 var App = React.createClass({
-    getInitialState: function () {
-        content = <Content />
-        return {
-            content: content
-        }
-    },
 
     render: function () {
         $('.button-collapse').sideNav();
         return (
             <div>
                 <Header  />
-                {content}
+                <Content />
                 <Footer  />
             </div>)
     }
