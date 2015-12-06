@@ -1,36 +1,9 @@
-function getDocuments(language) {
-    var documents = {
-        'data' : [{
-            'title' : "this is a title",
-            'tags' : [{
-                'lang' : 'de',
-                'name' : 'language',
-                'date' : 1449317640
-            }],
-            'url' : 'http://refugee-board.de/',
-            'date' : 1449317640
-        }, {
-            'title' : "this is another title",
-            'tags' : [{
-                'lang' : 'en',
-                'name' : 'language',
-                'date' : 1449317640
-            }],
-            'url' : 'http://refugee-board.de/',
-            'date' : 1449317640
-        },{
-            'title' : "this is a title",
-            'tags' : [{
-                'lang' : 'de',
-                'name' : 'language',
-                'date' : 1449317640
-            }],
-            'url' : 'http://refugee-board.de/',
-            'date' : 1449317640
-        }]
-    };
-    return documents;
-};
+var isMock_ = true;
+var content;
+
+function defaultError() {
+    alert("An error happened");
+}
 
 var Header = React.createClass({
     render: function () {
@@ -165,7 +138,7 @@ var DocumentView = React.createClass({
 
     render: function() {
         return (
-        <div className="card blue-grey darken-1" onClick={this.extendView()}>
+        <div className="card blue-grey darken-1" onClick={this.extendView}>
             <div className="card-content white-text">
                 <span className="card-title">{this.state.documentData.title}</span>
                 <p>{this.state.documentData.url}</p>
@@ -175,21 +148,29 @@ var DocumentView = React.createClass({
             </div>
             <div className="card-action">
                 <a href="#">add tags</a>
+                <a href="#" className="activator">more</a>
+            </div>
+            <div className="card-reveal">
+                <span className="card-title grey-text text-darken-4">{this.state.documentData.title}<i className="material-icons right">close</i></span>
+                <iframe src={this.state.documentData.url}></iframe>
             </div>
         </div>);
     }
 });
 
 var ContentTaggingOverview = React.createClass({
-
-    getInitialState: function () {
-        var documents = getDocuments();
-
-        console.log(documents);
-
+    getInitialState: function() {
         return {
-            documents: documents
+            documents: {data: []}
         }
+    },
+
+    componentWillMount: function() {
+        var self = this;
+        getDocuments(isMock_, "de", function (documents) {
+            console.log("Sucka nahui", documents);
+            self.setState({documents: documents});
+        }, defaultError);
     },
 
     getDocumentsCards: function () {
@@ -208,32 +189,169 @@ var ContentTaggingOverview = React.createClass({
 });
 
 var ChatMessage = React.createClass({
+
+    getInitialState: function() {
+        var stateData = { };
+
+        stateData.owner     = this.props.owner;
+        stateData.data      = this.props.data;
+        stateData.date      = this.props.date;
+        stateData.owner     = {avatarUrl:"", name: "", role:""};
+
+        return stateData;
+    },
+
+    componentWillMount: function() {
+        var self = this;
+        getUser(isMock_, this.props.owner, function(padawan) {
+            self.setState({owner: padawan});
+        }, defaultError);
+    },
+
     render: function () {
+        console.log(this.state);
+
         return (
-        <li class="collection-item avatar">
-            <img src="http://materializecss.com/images/yuna.jpg" alt="" class="circle" />
-            <span class="title">Title</span>
-            <p>First Line Second Line</p>
-            <a href="#!" class="secondary-content"><i class="material-icons">grade</i></a>
+        <li className="collection-item avatar">
+            <img src={this.state.owner.avatarUrl} alt="" className="circle" />
+            <span className="title">{this.state.owner.name}</span>
+            <p>{this.state.data}</p>
         </li>);
     }
 });
 
 var ChatRoom = React.createClass({
+    getDefaultProps: function() {
+        return {
+            chatId: 1
+        };
+    },
+
+    componentWillMount: function(messageData) {
+        var self = this;
+        getSession(isMock_, this.props.chatId, function(sessionObj){
+            sessionObj.messageValue = "";
+            self.setState(sessionObj);
+        }, defaultError);
+    },
+
+    getChatMessages: function () {
+        var chatroomData = [];
+
+        this.state.messages.forEach(function (message) {
+            chatroomData.push(<ChatMessage owner={message.ownerId} data={message.data} date={message.date} />)
+        }, this);
+
+        return chatroomData;
+    },
+
+    createMessage: function (messageString) {
+        return {
+            owner: 1,
+            data: messageString,
+            date: 15
+        }
+    },
+
+    sendMessage: function (event) {
+        var value = $(ReactDOM.findDOMNode(this.refs.messageValue));
+        if (value.val().length > 0) {
+            var msg = this.createMessage(value.val());
+            var allMessages = this.state.messages;
+            allMessages.push(msg);
+            this.setState({messages: allMessages});
+            value.val("");
+            console.log("TOOOOOOODOOOOOOOOOO Sending message !!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        }
+    },
+
     render: function() {
-        return (<ul></ul>);
+        return (<div>
+            <ul className="collection">{this.getChatMessages()}</ul>
+            <div>
+                <input type="text" ref="messageValue" onChange={this.handleInput} />
+                <button className="btn waves-effect waves-light red darken-3"
+                        type="submit" name="action" onClick={this.sendMessage}>Submit
+                    <i className="material-icons right">send</i>
+                </button>
+            </div>
+        </div>);
+    }
+});
+
+var Question = React.createClass({
+    getDefaultProps: function() {
+        return {
+            id: 1
+        }
+    },
+
+    componentWillMount: function () {
+        var self = this;
+        
+        getSession(isMock_, this.props.id, function (sessionInfo) {
+            var stateData = {};
+            stateData.owner     = sessionInfo.owner;
+            stateData.data      = sessionInfo.data;
+            stateData.date      = sessionInfo.date;
+            stateData.topic     = sessionInfo.topic;
+            stateData.sessionId = sessionInfo.sessionId;
+
+            getUser(isMock_, sessionInfo.owner, function (userData) {
+                stateData.owner = userData;
+            }, defaultError);
+
+            self.setState(stateData);
+        }, defaultError);
+    },
+
+    openChat: function() {
+        Content.changeState({active: <ChatRoom chatId={this.state.sessionId} />});
+    },
+
+    render: function () {
+        return (
+            <li className="collection-item avatar" onClick={this.openChat}>
+                <img src={this.state.owner.avatarUrl} alt="" className="circle" />
+                <span className="title">{this.state.owner.name}</span>
+                <p>{this.state.data}</p>
+            </li>);
+    }
+});
+
+var QuestionsOverview = React.createClass({
+    render: function() {
+        return <ul className="collection"><Question id="3234" /></ul>;
+    }
+});
+
+var AskQuestion = React.createClass({
+    render: function () {
+        return <div>
+            <input type="text" />
+        </div>;
     }
 });
 
 var Content = React.createClass({
     getDefaultProps: function() {
         return {
-            active: <ChatMessage />
+            active: <ChatRoom chatId="1" />
         }
     },
 
+    getInitialState: function () {
+        return {
+            active: this.props.active
+        }
+    },
+
+    changeState: function (domElement) {
+        this.setState({active: domElement});
+    },
+
     render: function() {
-        return this.props.active;
+        return this.state.active;
     }
 });
 
@@ -255,9 +373,9 @@ var App = React.createClass({
         $('.button-collapse').sideNav();
         return (
             <div>
-                <Header/>
-                <Content/>
-                <Footer/>
+                <Header  />
+                <Content />
+                <Footer  />
             </div>)
     }
 });

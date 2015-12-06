@@ -76,7 +76,7 @@
 		}];
 		
 		if(isMock) {
-			return sessions;
+			onSuccess(sessions);
 		}else {
 			doRequest("GET", sessionUrl, "json", onSuccess, onError);
 		}
@@ -98,14 +98,14 @@
 				
 	};
 	
-	function createSession(language, ownerId, question, topic, onSuccess, onError) {
-		sessionUrl + "?lang=" + language + "&ownerId=" + ownerId;
+	function createSession(isMock, language, ownerId, question, topic, onSuccess, onError) {
+		var url = sessionUrl + "?lang=" + language + "&ownerId=" + ownerId;
 		
 		var postData = {
 			'data' : question,
 			'topic' : topic
 		};
-				 	
+		
 		doRequest("POST", sessionUrl , "json", postData, onSuccess, onError);
 	}
 
@@ -219,9 +219,7 @@
 
 		request.done(onSuccess);
 		
-		request.fail(function(error) {
-			console.log(error);
-		}); 
+		request.fail(onError); 
 		
 		request.always(function() {
 			console.log("completed request");
