@@ -4,11 +4,12 @@
 REST
 
 /hack4good
-	
 	GET		-	liefert alle nachrichten zu einer session-id
 		/session/<session_id>
 		return - Session
 
+  GET - liefert alle docs die fuer eine session in frage kommen
+    /session/<session-id>/documents
 
 	POST	-	schickt neue Nachricht in den Chat
 		/sessions/<session_id> [ownerId]
@@ -36,6 +37,9 @@ REST
 		/documents/<id>/tags/
 			tags : List<Tag>		Tag := (name, lang)
       return - void 
+
+  GET - documents for tags
+    /documents [language]
 
 
 DATENMODEL 

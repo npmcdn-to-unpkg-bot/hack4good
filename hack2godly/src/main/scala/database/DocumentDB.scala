@@ -10,8 +10,9 @@ import org.json4s.native.Serialization.{read, write}
  */
 
 object Languages {
-  val ENGLISH   = "ENGLISH"
-  val DEUTSCH   = "DEUTSCH"
+  val ENGLISH   = "en"
+  val DEUTSCH   = "de"
+  val AllLangs  = Set(ENGLISH, DEUTSCH)
   val UNDEFINED = "Undefined"
 }
 
