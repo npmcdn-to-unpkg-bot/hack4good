@@ -10,9 +10,17 @@ import org.json4s.native.Serialization.{read, write}
  */
 
 object Languages {
-  val English = "ENGLISH"
-  val Deutsch = "DEUTSCH"
-  val Undefined = "Undefined"
+  val ENGLISH   = "ENGLISH"
+  val DEUTSCH   = "DEUTSCH"
+  val UNDEFINED = "Undefined"
+}
+
+object FileTypes {
+  val PDF       = "PDF"
+  val SOUNDFILE = "SOUND"
+  val VIDEO     = "VIDEO"
+  val WEBPAGE   = "PAGE"
+  val IMAGE     = "IMG"
 }
 
 object TypeConversion {
@@ -92,8 +100,8 @@ object TagTable {
 
 case class Document(
   id: Int,
-  content: String,
-  owner: String,
+  url: String,
+  typ: String,
   tags: String)
 
 object DocumentTable {
@@ -102,10 +110,10 @@ object DocumentTable {
 
   class Props(tag: Tag) extends Table[Document](tag, tableName){
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
-    def content = column[String]("content") // implicitly TEXT (unlimited)
-    def owner = column[String]("owner")
+    def url = column[String]("content") // implicitly TEXT (unlimited)
+    def typ = column[String]("fileType")
     def tags = column[String]("tags")
-    def * = (id, content, owner, tags).shaped <> (Document.tupled, Document.unapply)
+    def * = (id, url, typ, tags).shaped <> (Document.tupled, Document.unapply)
   }
 }
 
@@ -171,3 +179,4 @@ case class Message(
   ownerId: Int)
 
 case class SimpleMessage(message: String)
+case class SimpleTag(name: String, language: String)

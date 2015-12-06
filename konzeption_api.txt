@@ -34,8 +34,8 @@ REST
 
 	POST	-	erzeugt neue tags zu einem dokument  
 		/documents/<id>/tags/
-			tags : List<Tag>		
-		return - void 
+			tags : List<Tag>		Tag := (name, lang)
+      return - void 
 
 
 DATENMODEL 
