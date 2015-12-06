@@ -105,8 +105,12 @@
 			'data' : question,
 			'topic' : topic
 		};
-		
-		doRequest("POST", sessionUrl , "json", postData, onSuccess, onError);
+
+		if (isMock) {
+			onSuccess(12);
+		} else {
+			doRequest("POST", sessionUrl , "json", postData, onSuccess, onError);
+		}
 	}
 
 	function postMessage(isMock, sessionId, ownerId, message, onSuccess, onError) {

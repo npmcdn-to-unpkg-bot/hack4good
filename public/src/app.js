@@ -227,7 +227,7 @@ var ChatRoom = React.createClass({
         };
     },
 
-    componentWillMount: function(messageData) {
+    componentWillMount: function() {
         var self = this;
         getSession(isMock_, this.props.chatId, function(sessionObj){
             sessionObj.messageValue = "";
@@ -253,15 +253,16 @@ var ChatRoom = React.createClass({
         }
     },
 
-    sendMessage: function (event) {
+    sendMessage: function () {
         var value = $(ReactDOM.findDOMNode(this.refs.messageValue));
         if (value.val().length > 0) {
             var msg = this.createMessage(value.val());
-            var allMessages = this.state.messages;
-            allMessages.push(msg);
-            this.setState({messages: allMessages});
             value.val("");
-            console.log("TOOOOOOODOOOOOOOOOO Sending message !!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            var self = this;
+            postMessage(isMock_, this.state.chatId, msg.owner, msg.data, function (sessionData) {
+                sessionData.messageValue = "";
+                self.setState(sessionData);
+            }, defaultError);
         }
     },
 
@@ -269,7 +270,7 @@ var ChatRoom = React.createClass({
         return (<div>
             <ul className="collection">{this.getChatMessages()}</ul>
             <div>
-                <input type="text" ref="messageValue" onChange={this.handleInput} />
+                <input type="text" ref="messageValue" onChange={this.handleInput} placeholder="Your Message"/>
                 <button className="btn waves-effect waves-light red darken-3"
                         type="submit" name="action" onClick={this.sendMessage}>Submit
                     <i className="material-icons right">send</i>
@@ -326,9 +327,30 @@ var QuestionsOverview = React.createClass({
 });
 
 var AskQuestion = React.createClass({
+    createSession: function () {
+        var topic    = $(ReactDOM.findDOMNode(this.refs.topic)),
+            question = $(ReactDOM.findDOMNode(this.refs.question));
+        createSession(true, "en", 1, question.val(), topic.val(), function (sessionId) {
+            console.log("asking questing", topic.val(), question.val(), sessionId);
+            content.setState({active: <ChatRoom chatId={sessionId} />})
+        }, defaultError);
+    },
     render: function () {
         return <div>
-            <input type="text" />
+            <input type="text" placeholder="Topic" ref="topic"/>
+            <input type="text" placeholder="Question" ref="question" />
+            <button className="btn waves-effect waves-light red darken-3"
+                    type="submit" name="action" onClick={this.createSession}>Ask
+                <i className="material-icons right">send</i>
+            </button>
+        </div>;
+    }
+});
+
+var QuestionHistory = React.createClass({
+    render: function () {
+        return <div>
+            <h1>Alte Chats</h1>
         </div>;
     }
 });
@@ -336,7 +358,7 @@ var AskQuestion = React.createClass({
 var Content = React.createClass({
     getDefaultProps: function() {
         return {
-            active: <ChatRoom chatId="1" />
+            active: <AskQuestion chatId="1" />
         }
     },
 
@@ -369,12 +391,19 @@ var Footer = React.createClass({
 });
 
 var App = React.createClass({
+    getInitialState: function () {
+        content = <Content />
+        return {
+            content: content
+        }
+    },
+
     render: function () {
         $('.button-collapse').sideNav();
         return (
             <div>
                 <Header  />
-                <Content />
+                {content}
                 <Footer  />
             </div>)
     }
