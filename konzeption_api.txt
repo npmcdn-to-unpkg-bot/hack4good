@@ -12,7 +12,7 @@ REST
 
 	POST	-	schickt neue Nachricht in den Chat
 		/session/<session_id>/[ownerId]
-			message : String
+			{ message : String }
 		return - Session
 
 	GET 		-	liefert alle questions die im pool sind
