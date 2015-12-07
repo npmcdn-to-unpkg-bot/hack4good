@@ -21,4 +21,8 @@ What do we try to solve it? (demo designs and FE????)
 Where do we see this going?
   - More than 2 people can join question
   - rating and ranking for documents and answers
-  - user login and general savety
+  - user login and general safety
+
+
+Last Slide
+  - thank and help us (Plz !!)
